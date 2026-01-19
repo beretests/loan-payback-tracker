@@ -16,7 +16,7 @@ export default function AuthPanel({
         fontFamily: "system-ui, sans-serif",
       }}
     >
-      <h2>Loan Tracker (Supabase)</h2>
+      <h2>Loan Payback Tracker </h2>
       <p>
         Sign in to load and save your loan, scheduled payments, and payment
         history.
