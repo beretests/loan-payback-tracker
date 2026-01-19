@@ -46,7 +46,7 @@ export default function App() {
       .getSession()
       .then(({ data }) => setSession(data.session ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) =>
-      setSession(s ?? null)
+      setSession(s ?? null),
     );
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -68,7 +68,7 @@ export default function App() {
     if (error) setAuthError(error.message);
     else
       setAuthError(
-        "Sign-up successful. Check email if confirmation is enabled."
+        "Sign-up successful. Check email if confirmation is enabled.",
       );
   }
   async function signOut() {
@@ -170,14 +170,14 @@ export default function App() {
   const [newPrimePct, setNewPrimePct] = useState(6.75); // example
   const newLoanRateDecimal = useMemo(
     () => Number(newPrimePct) / 100 - 0.0025,
-    [newPrimePct]
+    [newPrimePct],
   );
 
   const computedNewMonthly = useMemo(() => {
     return calcMonthlyPayment(
       Number(newPrincipal),
       Number(newLoanRateDecimal),
-      Number(newAmortMonths)
+      Number(newAmortMonths),
     );
   }, [newPrincipal, newLoanRateDecimal, newAmortMonths]);
 
@@ -225,7 +225,7 @@ export default function App() {
       const schedRows = buildScheduledPayments(
         newStartDate,
         Number(newAmortMonths),
-        Number(newFixedMonthlyPayment)
+        Number(newFixedMonthlyPayment),
       ).map((r) => ({ ...r, loan_id: created.id }));
 
       const { error: schedErr } = await supabase
@@ -303,7 +303,7 @@ export default function App() {
 
   const actualEvents = useMemo(
     () => buildActualEventsFromPaymentEvents(events),
-    [events]
+    [events],
   );
 
   // “Actual history” schedule from recorded payments
@@ -359,13 +359,13 @@ export default function App() {
   }, [loan, scheduled, events]);
 
   const missedCount = scheduledWithStatus.filter(
-    (s) => s.status === "missed"
+    (s) => s.status === "missed",
   ).length;
   const partialCount = scheduledWithStatus.filter(
-    (s) => s.status === "partial"
+    (s) => s.status === "partial",
   ).length;
   const paidCount = scheduledWithStatus.filter(
-    (s) => s.status === "paid"
+    (s) => s.status === "paid",
   ).length;
 
   /** ---------- CSV export (actual schedule rows) ---------- **/
@@ -473,7 +473,7 @@ export default function App() {
           alignItems: "center",
         }}
       >
-        <h2 style={{ margin: 0 }}>Loan Tracker (Supabase)</h2>
+        <h2 style={{ margin: 0 }}>Loan Payment Tracker</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{ fontSize: 12, color: "#555" }}>{user.email}</div>
           <button onClick={signOut}>Sign out</button>
@@ -978,7 +978,7 @@ export default function App() {
                             >
                               {h}
                             </th>
-                          )
+                          ),
                         )}
                       </tr>
                     </thead>
