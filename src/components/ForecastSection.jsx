@@ -8,38 +8,32 @@ export default function ForecastSection({ forecastSchedule }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: 12,
           marginBottom: 10,
         }}
       >
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>
-            Total paid (projected)
-          </div>
-          <div style={{ fontSize: 18 }}>
+        <div className="metric-card">
+          <div className="metric-card__label">Total paid (projected)</div>
+          <div className="metric-card__value">
             {money(forecastSchedule.totalPaid)}
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>
-            Total interest (projected)
-          </div>
-          <div style={{ fontSize: 18 }}>
+        <div className="metric-card">
+          <div className="metric-card__label">Total interest (projected)</div>
+          <div className="metric-card__value">
             {money(forecastSchedule.totalInterest)}
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>Ending balance</div>
-          <div style={{ fontSize: 18 }}>
+        <div className="metric-card">
+          <div className="metric-card__label">Ending balance</div>
+          <div className="metric-card__value">
             {money(forecastSchedule.endingBalance)}
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>
-            Payoff date (projected)
-          </div>
-          <div style={{ fontSize: 18 }}>
+        <div className="metric-card">
+          <div className="metric-card__label">Payoff date (projected)</div>
+          <div className="metric-card__value">
             {forecastSchedule.payoffDate ?? "-"}
           </div>
         </div>

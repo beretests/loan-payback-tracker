@@ -22,12 +22,20 @@ export default function CreateLoanForm({
   return (
     <div>
       <h3>Create a new loan</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 12,
+        }}
+      >
         <label>
           Name
           <input
             value={newName}
             onChange={(e) => onNameChange(e.target.value)}
+            placeholder="Name"
+            aria-label="Name"
             style={{ width: "100%" }}
           />
         </label>
@@ -36,7 +44,9 @@ export default function CreateLoanForm({
           <input
             type="number"
             value={newPrincipal}
-            onChange={(e) => onPrincipalChange(Number(e.target.value))}
+            onChange={(e) => onPrincipalChange(e.target.value)}
+            placeholder="Principal (CAD)"
+            aria-label="Principal (CAD)"
             style={{ width: "100%" }}
           />
         </label>
@@ -46,6 +56,8 @@ export default function CreateLoanForm({
             type="date"
             value={newStartDate}
             onChange={(e) => onStartDateChange(e.target.value)}
+            placeholder="Start date"
+            aria-label="Start date"
             style={{ width: "100%" }}
           />
         </label>
@@ -54,7 +66,9 @@ export default function CreateLoanForm({
           <input
             type="number"
             value={newAmortMonths}
-            onChange={(e) => onAmortMonthsChange(Number(e.target.value))}
+            onChange={(e) => onAmortMonthsChange(e.target.value)}
+            placeholder="Amortization (months)"
+            aria-label="Amortization (months)"
             style={{ width: "100%" }}
           />
         </label>
@@ -62,11 +76,13 @@ export default function CreateLoanForm({
           Day-count basis
           <select
             value={newDayCount}
-            onChange={(e) => onDayCountChange(Number(e.target.value))}
+            onChange={(e) => onDayCountChange(e.target.value)}
+            aria-label="Day-count basis"
             style={{ width: "100%" }}
           >
-            <option value={365}>365</option>
-            <option value={360}>360</option>
+            <option value="">Day-count basis</option>
+            <option value="365">Day-count basis: 365</option>
+            <option value="360">Day-count basis: 360</option>
           </select>
         </label>
 
@@ -76,7 +92,9 @@ export default function CreateLoanForm({
             type="number"
             step="0.01"
             value={newPrimePct}
-            onChange={(e) => onPrimePctChange(Number(e.target.value))}
+            onChange={(e) => onPrimePctChange(e.target.value)}
+            placeholder="Prime (%) (for initial rate)"
+            aria-label="Prime (%) (for initial rate)"
             style={{ width: "100%" }}
           />
           <div style={{ fontSize: 12, color: "#555" }}>
@@ -90,7 +108,10 @@ export default function CreateLoanForm({
             type="number"
             value={newMonthlyOverride}
             onChange={(e) => onMonthlyOverrideChange(e.target.value)}
-            placeholder={computedNewMonthly.toFixed(2)}
+            placeholder={
+              isFinite(computedNewMonthly) ? computedNewMonthly.toFixed(2) : ""
+            }
+            aria-label="Fixed monthly payment override (optional)"
             style={{ width: "100%" }}
           />
           <div style={{ fontSize: 12, color: "#555" }}>

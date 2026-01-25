@@ -13,28 +13,30 @@ export default function ActualHistorySection({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: 12,
           marginBottom: 10,
         }}
       >
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>Total paid</div>
-          <div style={{ fontSize: 18 }}>{money(actualSchedule.totalPaid)}</div>
+        <div className="metric-card">
+          <div className="metric-card__label">Total paid</div>
+          <div className="metric-card__value">
+            {money(actualSchedule.totalPaid)}
+          </div>
         </div>
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>
+        <div className="metric-card">
+          <div className="metric-card__label">
             Total interest (accrued between payments)
           </div>
-          <div style={{ fontSize: 18 }}>
+          <div className="metric-card__value">
             {money(actualSchedule.totalInterest)}
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 12, color: "#555" }}>
+        <div className="metric-card">
+          <div className="metric-card__label">
             Ending balance (after last recorded payment)
           </div>
-          <div style={{ fontSize: 18 }}>
+          <div className="metric-card__value">
             {money(actualSchedule.endingBalance)}
           </div>
         </div>
@@ -61,14 +63,8 @@ export default function ActualHistorySection({
         </button>
       </div>
 
-      <div
-        style={{
-          overflowX: "auto",
-          border: "1px solid #ddd",
-          marginTop: 8,
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className="table-wrap" style={{ marginTop: 8 }}>
+        <table className="data-table">
           <thead>
             <tr>
               {[
@@ -81,59 +77,44 @@ export default function ActualHistorySection({
                 "Balance",
                 "Actions",
               ].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    textAlign: "left",
-                    padding: 8,
-                    borderBottom: "1px solid #ddd",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
+                  <th key={h} className="data-table__head">
+                    {h}
+                  </th>
+                ))}
             </tr>
           </thead>
           <tbody>
             {actualSchedule.rows.map((r, idx) => (
               <tr key={idx}>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {r.date}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {r.type}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {money(r.payment)}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {money(r.interestAccrued)}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {money(r.toInterest)}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {money(r.toPrincipal)}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {money(r.balance)}
                 </td>
-                <td
-                  style={{
-                    padding: 8,
-                    borderBottom: "1px solid #eee",
-                    fontSize: 12,
-                    color: "#555",
-                  }}
-                >
+                <td className="data-table__muted">
                   <span>See "Payment events" below</span>
                 </td>
               </tr>
             ))}
             {!actualSchedule.rows.length && (
               <tr>
-                <td colSpan={8} style={{ padding: 8, color: "#555" }}>
+                <td colSpan={8} className="data-table__empty">
                   No recorded payments yet.
                 </td>
               </tr>
@@ -143,19 +124,14 @@ export default function ActualHistorySection({
       </div>
 
       <h4 style={{ marginTop: 14 }}>Payment events (raw)</h4>
-      <div style={{ overflowX: "auto", border: "1px solid #ddd" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className="table-wrap">
+        <table className="data-table">
           <thead>
             <tr>
               {["Paid date", "Amount", "Kind", "Note", "Actions"].map((h) => (
                 <th
                   key={h}
-                  style={{
-                    textAlign: "left",
-                    padding: 8,
-                    borderBottom: "1px solid #ddd",
-                    whiteSpace: "nowrap",
-                  }}
+                  className="data-table__head"
                 >
                   {h}
                 </th>
@@ -165,19 +141,19 @@ export default function ActualHistorySection({
           <tbody>
             {events.map((ev) => (
               <tr key={ev.id}>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {ev.paid_date}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {money(ev.amount)}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {ev.kind}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   {ev.note ?? ""}
                 </td>
-                <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
+                <td>
                   <button
                     onClick={() => onDeleteEvent(ev.id)}
                     style={{ fontSize: 12 }}
@@ -189,7 +165,7 @@ export default function ActualHistorySection({
             ))}
             {!events.length && (
               <tr>
-                <td colSpan={5} style={{ padding: 8, color: "#555" }}>
+                <td colSpan={5} className="data-table__empty">
                   No payment events.
                 </td>
               </tr>

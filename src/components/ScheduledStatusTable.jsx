@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { money } from "../utils/format";
 
 export default function ScheduledStatusTable({
@@ -5,7 +6,21 @@ export default function ScheduledStatusTable({
   paidCount,
   partialCount,
   missedCount,
+  pageSize = 18,
 }) {
+  const [page, setPage] = useState(1);
+  const total = scheduledWithStatus.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+
+  const pageRows = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return scheduledWithStatus.slice(start, start + pageSize);
+  }, [safePage, pageSize, scheduledWithStatus]);
+
+  const startRow = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endRow = Math.min(total, safePage * pageSize);
+
   return (
     <div>
       <h3>Scheduled payment status</h3>
@@ -21,6 +36,40 @@ export default function ScheduledStatusTable({
         <div>Paid: {paidCount}</div>
         <div>Partial: {partialCount}</div>
         <div>Missed: {missedCount}</div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          fontSize: 12,
+          color: "#555",
+          marginBottom: 8,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          Showing {startRow}-{endRow} of {total}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={() => setPage(Math.max(1, safePage - 1))}
+            disabled={safePage <= 1}
+          >
+            Prev
+          </button>
+          <div>
+            Page {safePage} of {totalPages}
+          </div>
+          <button
+            onClick={() => setPage(Math.min(totalPages, safePage + 1))}
+            disabled={safePage >= totalPages}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       <div style={{ overflowX: "auto", border: "1px solid #ddd" }}>
@@ -45,7 +94,7 @@ export default function ScheduledStatusTable({
             </tr>
           </thead>
           <tbody>
-            {scheduledWithStatus.slice(0, 18).map((s) => (
+            {pageRows.map((s) => (
               <tr key={s.id}>
                 <td style={{ padding: 8, borderBottom: "1px solid #eee" }}>
                   {s.due_date}
@@ -71,10 +120,10 @@ export default function ScheduledStatusTable({
                 </td>
               </tr>
             ))}
-            {scheduledWithStatus.length > 18 && (
+            {total === 0 && (
               <tr>
                 <td colSpan={5} style={{ padding: 8, fontSize: 12, color: "#555" }}>
-                  Showing first 18 scheduled rows. (Easy to paginate later.)
+                  No scheduled payments yet.
                 </td>
               </tr>
             )}

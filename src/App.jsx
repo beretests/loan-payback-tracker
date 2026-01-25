@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { NavLink, Route, Routes } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import { buildScheduledPayments } from "./scheduleGen";
 import {
@@ -11,15 +12,30 @@ import {
 } from "./loanMath";
 import { exportRowsToCSV } from "./csv";
 import { todayUtcDateString } from "./utils/format";
-import ActualHistorySection from "./components/ActualHistorySection";
 import AppHeader from "./components/AppHeader";
 import AuthPanel from "./components/AuthPanel";
-import CreateLoanForm from "./components/CreateLoanForm";
-import ForecastSection from "./components/ForecastSection";
-import LoanSelector from "./components/LoanSelector";
-import PaymentForm from "./components/PaymentForm";
-import ScheduledStatusTable from "./components/ScheduledStatusTable";
-import TabSwitcher from "./components/TabSwitcher";
+import CreateLoanPage from "./pages/CreateLoanPage";
+import HistoryForecastPage from "./pages/HistoryForecastPage";
+import HomePage from "./pages/HomePage";
+import NotFoundPage from "./pages/NotFoundPage";
+import RecordPaymentPage from "./pages/RecordPaymentPage";
+import SchedulePage from "./pages/SchedulePage";
+
+function fmtDate(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function monthBounds(monthStr) {
+  if (!monthStr) return { start: null, end: null };
+  const [y, m] = monthStr.split("-").map(Number);
+  if (!y || !m) return { start: null, end: null };
+  const start = new Date(Date.UTC(y, m - 1, 1));
+  const end = new Date(Date.UTC(y, m, 1));
+  return { start: fmtDate(start), end: fmtDate(end) };
+}
 
 export default function App() {
   /** ---------- Auth state ---------- **/
@@ -31,6 +47,7 @@ export default function App() {
   const [authError, setAuthError] = useState("");
 
   const [tab, setTab] = useState("actual"); // "actual" | "forecast"
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth
@@ -78,7 +95,18 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [appError, setAppError] = useState("");
 
-  async function refreshLoans() {
+  /** ---------- Monthly owing summary ---------- **/
+  const [monthlyOwingMonth, setMonthlyOwingMonth] = useState(
+    todayUtcDateString().slice(0, 7),
+  );
+  const [monthlyOwingRows, setMonthlyOwingRows] = useState([]);
+  const [monthlyOwingTotalScheduled, setMonthlyOwingTotalScheduled] =
+    useState(0);
+  const [monthlyOwingTotalPaid, setMonthlyOwingTotalPaid] = useState(0);
+  const [monthlyOwingLoading, setMonthlyOwingLoading] = useState(false);
+  const [monthlyOwingError, setMonthlyOwingError] = useState("");
+
+  const refreshLoans = useCallback(async () => {
     if (!user) return;
     const { data, error } = await supabase
       .from("loans")
@@ -87,10 +115,12 @@ export default function App() {
 
     if (error) throw error;
     setLoans(data ?? []);
-    if (!selectedLoanId && data?.length) setSelectedLoanId(data[0].id);
-  }
+    if (data?.length) {
+      setSelectedLoanId((prev) => (prev ? prev : data[0].id));
+    }
+  }, [user]);
 
-  async function loadLoanData(loanId) {
+  const loadLoanData = useCallback(async (loanId) => {
     setLoading(true);
     setAppError("");
     try {
@@ -136,47 +166,134 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    if (!user) return;
     refreshLoans().catch((e) => setAppError(e.message ?? String(e)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [refreshLoans]);
 
   useEffect(() => {
     if (!user || !selectedLoanId) return;
     loadLoanData(selectedLoanId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, selectedLoanId]);
+  }, [user, selectedLoanId, loadLoanData]);
+
+  useEffect(() => {
+    if (!user) return;
+    const { start, end } = monthBounds(monthlyOwingMonth);
+    if (!start || !end) {
+      setMonthlyOwingRows([]);
+      setMonthlyOwingTotalScheduled(0);
+      setMonthlyOwingTotalPaid(0);
+      return;
+    }
+    if (!loans.length) {
+      setMonthlyOwingRows([]);
+      setMonthlyOwingTotalScheduled(0);
+      setMonthlyOwingTotalPaid(0);
+      return;
+    }
+
+    let isActive = true;
+    setMonthlyOwingLoading(true);
+    setMonthlyOwingError("");
+
+    const loadMonthlyTotals = async () => {
+      try {
+        const [schedR, paidR] = await Promise.all([
+          supabase
+            .from("scheduled_payments")
+            .select("loan_id, expected_amount, due_date")
+            .gte("due_date", start)
+            .lt("due_date", end),
+          supabase
+            .from("payment_events")
+            .select("loan_id, amount, paid_date")
+            .gte("paid_date", start)
+            .lt("paid_date", end),
+        ]);
+
+        if (schedR.error) throw schedR.error;
+        if (paidR.error) throw paidR.error;
+        if (!isActive) return;
+
+        const scheduledByLoan = new Map();
+        for (const row of schedR.data ?? []) {
+          const loanId = row.loan_id;
+          const amt = Number(row.expected_amount);
+          if (!isFinite(amt)) continue;
+          scheduledByLoan.set(
+            loanId,
+            (scheduledByLoan.get(loanId) ?? 0) + amt,
+          );
+        }
+
+        const paidByLoan = new Map();
+        for (const row of paidR.data ?? []) {
+          const loanId = row.loan_id;
+          const amt = Number(row.amount);
+          if (!isFinite(amt)) continue;
+          paidByLoan.set(loanId, (paidByLoan.get(loanId) ?? 0) + amt);
+        }
+
+        const rows = loans.map((l) => ({
+          id: l.id,
+          name: l.name,
+          amountDue: scheduledByLoan.get(l.id) ?? 0,
+          amountPaid: paidByLoan.get(l.id) ?? 0,
+        }));
+        const totalScheduled = rows.reduce((sum, r) => sum + r.amountDue, 0);
+        const totalPaid = rows.reduce((sum, r) => sum + r.amountPaid, 0);
+
+        setMonthlyOwingRows(rows);
+        setMonthlyOwingTotalScheduled(totalScheduled);
+        setMonthlyOwingTotalPaid(totalPaid);
+      } catch (e) {
+        if (!isActive) return;
+        setMonthlyOwingError(e.message ?? String(e));
+      } finally {
+        if (isActive) setMonthlyOwingLoading(false);
+      }
+    };
+
+    loadMonthlyTotals();
+
+    return () => {
+      isActive = false;
+    };
+  }, [user, monthlyOwingMonth, loans]);
 
   /** ---------- Create loan form ---------- **/
-  const [newName, setNewName] = useState("Friend Loan");
-  const [newPrincipal, setNewPrincipal] = useState(20000);
-  const [newStartDate, setNewStartDate] = useState(todayUtcDateString());
-  const [newAmortMonths, setNewAmortMonths] = useState(60);
-  const [newDayCount, setNewDayCount] = useState(365);
+  const [newName, setNewName] = useState("");
+  const [newPrincipal, setNewPrincipal] = useState("");
+  const [newStartDate, setNewStartDate] = useState("");
+  const [newAmortMonths, setNewAmortMonths] = useState("");
+  const [newDayCount, setNewDayCount] = useState("");
 
   // Prime input as percent; convert to loan annual decimal = prime%/100 - 0.0025
-  const [newPrimePct, setNewPrimePct] = useState(6.75); // example
-  const newLoanRateDecimal = useMemo(
-    () => Number(newPrimePct) / 100 - 0.0025,
-    [newPrimePct],
-  );
+  const [newPrimePct, setNewPrimePct] = useState("");
+  const newLoanRateDecimal = useMemo(() => {
+    const primePct = Number(newPrimePct);
+    return isFinite(primePct) ? primePct / 100 - 0.0025 : NaN;
+  }, [newPrimePct]);
 
   const computedNewMonthly = useMemo(() => {
-    return calcMonthlyPayment(
-      Number(newPrincipal),
-      Number(newLoanRateDecimal),
-      Number(newAmortMonths),
-    );
+    const principal = Number(newPrincipal);
+    const amortMonths = Number(newAmortMonths);
+    if (
+      !isFinite(principal) ||
+      !isFinite(newLoanRateDecimal) ||
+      !isFinite(amortMonths) ||
+      principal <= 0 ||
+      amortMonths <= 0
+    )
+      return NaN;
+    return calcMonthlyPayment(principal, Number(newLoanRateDecimal), amortMonths);
   }, [newPrincipal, newLoanRateDecimal, newAmortMonths]);
 
   const [newMonthlyOverride, setNewMonthlyOverride] = useState("");
   const newFixedMonthlyPayment = useMemo(() => {
-    return newMonthlyOverride.trim() === ""
-      ? computedNewMonthly
-      : Number(newMonthlyOverride);
+    if (newMonthlyOverride.trim() !== "") return Number(newMonthlyOverride);
+    return computedNewMonthly;
   }, [newMonthlyOverride, computedNewMonthly]);
 
   async function createLoan() {
@@ -184,18 +301,37 @@ export default function App() {
     setLoading(true);
     setAppError("");
     try {
+      const name = newName.trim();
+      const principal = Number(newPrincipal);
+      const amortMonths = Number(newAmortMonths);
+      const dayCount = Number(newDayCount);
+      const monthlyPayment = Number(newFixedMonthlyPayment);
+
+      if (!name) throw new Error("Loan name is required.");
+      if (!newStartDate) throw new Error("Start date is required.");
+      if (!isFinite(principal) || principal <= 0)
+        throw new Error("Principal must be a positive number.");
+      if (!isFinite(amortMonths) || amortMonths <= 0)
+        throw new Error("Amortization months must be a positive number.");
+      if (![360, 365].includes(dayCount))
+        throw new Error("Day-count basis must be 360 or 365.");
+      if (!isFinite(newLoanRateDecimal))
+        throw new Error("Prime rate must be provided.");
+      if (!isFinite(monthlyPayment) || monthlyPayment <= 0)
+        throw new Error("Monthly payment must be a positive number.");
+
       // 1) Create loan
       const { data: created, error: loanErr } = await supabase
         .from("loans")
         .insert([
           {
             user_id: user.id,
-            name: newName,
-            principal: Number(newPrincipal),
+            name,
+            principal,
             start_date: newStartDate,
-            amort_months: Number(newAmortMonths),
-            day_count_basis: Number(newDayCount),
-            fixed_monthly_payment: Number(newFixedMonthlyPayment),
+            amort_months: amortMonths,
+            day_count_basis: dayCount,
+            fixed_monthly_payment: monthlyPayment,
           },
         ])
         .select()
@@ -215,8 +351,8 @@ export default function App() {
       // 3) Insert schedule rows
       const schedRows = buildScheduledPayments(
         newStartDate,
-        Number(newAmortMonths),
-        Number(newFixedMonthlyPayment),
+        amortMonths,
+        monthlyPayment,
       ).map((r) => ({ ...r, loan_id: created.id }));
 
       const { error: schedErr } = await supabase
@@ -404,18 +540,16 @@ export default function App() {
     );
   }
 
+  const navItems = [
+    { to: "/", label: "Home", end: true },
+    { to: "/create", label: "Create loan" },
+    { to: "/record", label: "Record payment" },
+    { to: "/schedule", label: "Payment schedule" },
+    { to: "/history", label: "History & forecast" },
+  ];
+
   return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        margin: "clamp(12px, 3vw, 24px) auto",
-        padding: "clamp(12px, 2.5vw, 48px)",
-        boxSizing: "border-box",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
+    <div className="app-shell">
       <AppHeader
         title="Loan Payment Tracker"
         userEmail={user.email}
@@ -427,81 +561,135 @@ export default function App() {
       )}
       {loading && <div style={{ marginTop: 12, color: "#555" }}>Loading...</div>}
 
-      <hr style={{ margin: "16px 0" }} />
+      <nav className={`app-nav${navOpen ? " app-nav--open" : ""}`}>
+        <button
+          className="nav-toggle"
+          type="button"
+          onClick={() => setNavOpen((open) => !open)}
+          aria-expanded={navOpen}
+          aria-controls="app-nav-links"
+        >
+          {navOpen ? "Close menu" : "Menu"}
+        </button>
+        <div className="nav-links" id="app-nav-links">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={() => setNavOpen(false)}
+              className={({ isActive }) =>
+                `nav-link${isActive ? " nav-link--active" : ""}`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <CreateLoanForm
-          newName={newName}
-          newPrincipal={newPrincipal}
-          newStartDate={newStartDate}
-          newAmortMonths={newAmortMonths}
-          newDayCount={newDayCount}
-          newPrimePct={newPrimePct}
-          newMonthlyOverride={newMonthlyOverride}
-          computedNewMonthly={computedNewMonthly}
-          newLoanRateDecimal={newLoanRateDecimal}
-          onNameChange={setNewName}
-          onPrincipalChange={setNewPrincipal}
-          onStartDateChange={setNewStartDate}
-          onAmortMonthsChange={setNewAmortMonths}
-          onDayCountChange={setNewDayCount}
-          onPrimePctChange={setNewPrimePct}
-          onMonthlyOverrideChange={setNewMonthlyOverride}
-          onCreateLoan={createLoan}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              monthlyOwingMonth={monthlyOwingMonth}
+              monthlyOwingRows={monthlyOwingRows}
+              monthlyOwingTotalScheduled={monthlyOwingTotalScheduled}
+              monthlyOwingTotalPaid={monthlyOwingTotalPaid}
+              monthlyOwingLoading={monthlyOwingLoading}
+              monthlyOwingError={monthlyOwingError}
+              onMonthChange={setMonthlyOwingMonth}
+            />
+          }
         />
-        <LoanSelector
-          loans={loans}
-          selectedLoanId={selectedLoanId}
-          loan={loan}
-          ratePeriods={ratePeriods}
-          scheduled={scheduled}
-          events={events}
-          onSelectLoan={setSelectedLoanId}
+        <Route
+          path="/create"
+          element={
+            <CreateLoanPage
+              newName={newName}
+              newPrincipal={newPrincipal}
+              newStartDate={newStartDate}
+              newAmortMonths={newAmortMonths}
+              newDayCount={newDayCount}
+              newPrimePct={newPrimePct}
+              newMonthlyOverride={newMonthlyOverride}
+              computedNewMonthly={computedNewMonthly}
+              newLoanRateDecimal={newLoanRateDecimal}
+              onNameChange={setNewName}
+              onPrincipalChange={setNewPrincipal}
+              onStartDateChange={setNewStartDate}
+              onAmortMonthsChange={setNewAmortMonths}
+              onDayCountChange={setNewDayCount}
+              onPrimePctChange={setNewPrimePct}
+              onMonthlyOverrideChange={setNewMonthlyOverride}
+              onCreateLoan={createLoan}
+            />
+          }
         />
-      </div>
-
-      {loan && (
-        <>
-          <hr style={{ margin: "16px 0" }} />
-
-          <PaymentForm
-            payDate={payDate}
-            payAmount={payAmount}
-            payKind={payKind}
-            payNote={payNote}
-            onPayDateChange={setPayDate}
-            onPayAmountChange={setPayAmount}
-            onPayKindChange={setPayKind}
-            onPayNoteChange={setPayNote}
-            onAddPayment={addPaymentEvent}
-          />
-
-          <hr style={{ margin: "16px 0" }} />
-
-          <TabSwitcher tab={tab} onTabChange={setTab} />
-
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-          >
-            <ScheduledStatusTable
+        <Route
+          path="/record"
+          element={
+            <RecordPaymentPage
+              loans={loans}
+              selectedLoanId={selectedLoanId}
+              loan={loan}
+              ratePeriods={ratePeriods}
+              scheduled={scheduled}
+              events={events}
+              onSelectLoan={setSelectedLoanId}
+              payDate={payDate}
+              payAmount={payAmount}
+              payKind={payKind}
+              payNote={payNote}
+              onPayDateChange={setPayDate}
+              onPayAmountChange={setPayAmount}
+              onPayKindChange={setPayKind}
+              onPayNoteChange={setPayNote}
+              onAddPayment={addPaymentEvent}
+            />
+          }
+        />
+        <Route
+          path="/schedule"
+          element={
+            <SchedulePage
+              loans={loans}
+              selectedLoanId={selectedLoanId}
+              loan={loan}
+              ratePeriods={ratePeriods}
+              scheduled={scheduled}
+              events={events}
+              onSelectLoan={setSelectedLoanId}
               scheduledWithStatus={scheduledWithStatus}
               paidCount={paidCount}
               partialCount={partialCount}
               missedCount={missedCount}
             />
-            {tab === "actual" ? (
-              <ActualHistorySection
-                actualSchedule={actualSchedule}
-                events={events}
-                onExportCSV={exportActualScheduleCSV}
-                onDeleteEvent={deletePaymentEvent}
-              />
-            ) : (
-              <ForecastSection forecastSchedule={forecastSchedule} />
-            )}
-          </div>
-        </>
-      )}
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <HistoryForecastPage
+              loans={loans}
+              selectedLoanId={selectedLoanId}
+              loan={loan}
+              ratePeriods={ratePeriods}
+              scheduled={scheduled}
+              events={events}
+              onSelectLoan={setSelectedLoanId}
+              tab={tab}
+              onTabChange={setTab}
+              actualSchedule={actualSchedule}
+              forecastSchedule={forecastSchedule}
+              onExportCSV={exportActualScheduleCSV}
+              onDeleteEvent={deletePaymentEvent}
+            />
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </div>
   );
 }

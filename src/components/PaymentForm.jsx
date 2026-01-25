@@ -15,7 +15,7 @@ export default function PaymentForm({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "160px 160px 160px 1fr 140px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
           gap: 8,
           alignItems: "end",
         }}
@@ -39,7 +39,22 @@ export default function PaymentForm({
           />
         </label>
         <label>
-          Kind
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Kind
+            <span
+              className="tooltip"
+              aria-label="Payment type definitions"
+            >
+              i
+              <span className="tooltip__bubble">
+                <strong>manual</strong>: regular payment (treated like monthly)
+                <br />
+                <strong>monthly</strong>: scheduled payment
+                <br />
+                <strong>extra</strong>: additional principal-only payment
+              </span>
+            </span>
+          </span>
           <select
             value={payKind}
             onChange={(e) => onPayKindChange(e.target.value)}
