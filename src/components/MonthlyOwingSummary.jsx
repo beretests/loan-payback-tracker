@@ -43,37 +43,20 @@ export default function MonthlyOwingSummary({
 
       <div
         style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-          fontSize: 12,
-          color: "#555",
-          marginTop: 8,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 12,
+          marginTop: 12,
         }}
       >
-        <span
-          style={{
-            fontWeight: 600,
-            background: "#f1f5ff",
-            color: "#1b3a8a",
-            padding: "2px 8px",
-            borderRadius: 6,
-          }}
-        >
-          Total scheduled: {money(totalScheduled)}
-        </span>
-        <span
-          style={{
-            fontWeight: 600,
-            background: "#effaf3",
-            color: "#1f6b3a",
-            padding: "2px 8px",
-            borderRadius: 6,
-          }}
-        >
-          Total paid: {money(totalPaid)}
-        </span>
+        <div className="metric-card metric-card--scheduled">
+          <div className="metric-card__label">Total scheduled</div>
+          <div className="metric-card__value">{money(totalScheduled)}</div>
+        </div>
+        <div className="metric-card metric-card--paid">
+          <div className="metric-card__label">Total paid</div>
+          <div className="metric-card__value">{money(totalPaid)}</div>
+        </div>
       </div>
 
       <div style={{ overflowX: "auto", border: "1px solid #ddd", marginTop: 8 }}>
