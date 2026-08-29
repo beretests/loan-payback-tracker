@@ -9,6 +9,12 @@ export default function SchedulePage({
   scheduled,
   events,
   onSelectLoan,
+  currentUserId,
+  shareEmail,
+  shareLoading,
+  shareError,
+  onShareEmailChange,
+  onAddShare,
   scheduledWithStatus,
   paidCount,
   partialCount,
@@ -25,6 +31,12 @@ export default function SchedulePage({
           scheduled={scheduled}
           events={events}
           onSelectLoan={onSelectLoan}
+          currentUserId={currentUserId}
+          shareEmail={shareEmail}
+          shareLoading={shareLoading}
+          shareError={shareError}
+          onShareEmailChange={onShareEmailChange}
+          onAddShare={onAddShare}
         />
       </section>
 

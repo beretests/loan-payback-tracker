@@ -44,7 +44,16 @@ export default function App() {
 
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState("");
+  const [authView, setAuthView] = useState(() =>
+    window.location.pathname === "/reset-password"
+      ? "reset-password"
+      : "sign-in",
+  );
   const [authError, setAuthError] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
 
   const [tab, setTab] = useState("actual"); // "actual" | "forecast"
   const [navOpen, setNavOpen] = useState(false);
@@ -53,31 +62,123 @@ export default function App() {
     supabase.auth
       .getSession()
       .then(({ data }) => setSession(data.session ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) =>
-      setSession(s ?? null),
-    );
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s ?? null);
+      if (event === "PASSWORD_RECOVERY") {
+        setAuthView("reset-password");
+        setAuthError("");
+        setAuthMessage("");
+      }
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
 
   async function signIn() {
     setAuthError("");
-    const { error } = await supabase.auth.signInWithPassword({
-      email: authEmail,
-      password: authPassword,
-    });
-    if (error) setAuthError(error.message);
+    setAuthMessage("");
+    setAuthBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: authEmail.trim(),
+        password: authPassword,
+      });
+      if (error) setAuthError(error.message);
+    } finally {
+      setAuthBusy(false);
+    }
   }
   async function signUp() {
     setAuthError("");
-    const { error } = await supabase.auth.signUp({
-      email: authEmail,
-      password: authPassword,
-    });
-    if (error) setAuthError(error.message);
-    else
-      setAuthError(
+    setAuthMessage("");
+    setAuthBusy(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: authEmail.trim(),
+        password: authPassword,
+      });
+      if (error) setAuthError(error.message);
+      else setAuthMessage(
         "Sign-up successful. Check email if confirmation is enabled.",
       );
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  async function requestPasswordReset() {
+    const email = authEmail.trim();
+    setAuthError("");
+    setAuthMessage("");
+    if (!email) {
+      setAuthError("Enter your email address.");
+      return;
+    }
+
+    setAuthBusy(true);
+    try {
+      const redirectTo = new URL(
+        "/reset-password",
+        window.location.origin,
+      ).toString();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) throw error;
+      setAuthMessage(
+        "If an account exists for that email, a password reset link has been sent.",
+      );
+    } catch (error) {
+      setAuthError(error.message ?? String(error));
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  async function updatePassword() {
+    setAuthError("");
+    setAuthMessage("");
+    if (resetPassword.length < 6) {
+      setAuthError("Password must be at least 6 characters.");
+      return;
+    }
+    if (resetPassword !== resetPasswordConfirm) {
+      setAuthError("Passwords do not match.");
+      return;
+    }
+
+    setAuthBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: resetPassword,
+      });
+      if (error) throw error;
+
+      await supabase.auth.signOut();
+      window.history.replaceState({}, "", "/");
+      setResetPassword("");
+      setResetPasswordConfirm("");
+      setAuthView("sign-in");
+      setAuthMessage("Password updated. Sign in with your new password.");
+    } catch (error) {
+      setAuthError(
+        error.message === "Auth session missing!"
+          ? "This reset link is invalid or has expired. Request a new one."
+          : (error.message ?? String(error)),
+      );
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+  async function backToSignIn() {
+    if (authView === "reset-password") {
+      await supabase.auth.signOut();
+    }
+    if (window.location.pathname === "/reset-password") {
+      window.history.replaceState({}, "", "/");
+    }
+    setResetPassword("");
+    setResetPasswordConfirm("");
+    setAuthView("sign-in");
+    setAuthError("");
+    setAuthMessage("");
   }
   async function signOut() {
     await supabase.auth.signOut();
@@ -106,12 +207,37 @@ export default function App() {
   const [monthlyOwingLoading, setMonthlyOwingLoading] = useState(false);
   const [monthlyOwingError, setMonthlyOwingError] = useState("");
 
+  /** ---------- Loan sharing ---------- **/
+  const [shareEmail, setShareEmail] = useState("");
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareError, setShareError] = useState("");
+
   const refreshLoans = useCallback(async () => {
     if (!user) return;
-    const { data, error } = await supabase
+    const userEmail = user.email?.toLowerCase() ?? "";
+    const sharedR = userEmail
+      ? await supabase
+          .from("loan_shares")
+          .select("loan_id")
+          .eq("invited_email", userEmail)
+      : { data: [], error: null };
+    if (sharedR.error) throw sharedR.error;
+    const sharedIds = (sharedR.data ?? []).map((r) => r.loan_id);
+
+    let loansQ = supabase
       .from("loans")
-      .select("id,name,created_at")
+      .select("id,name,created_at,user_id")
       .order("created_at", { ascending: false });
+
+    if (sharedIds.length) {
+      loansQ = loansQ.or(
+        `user_id.eq.${user.id},id.in.(${sharedIds.join(",")})`,
+      );
+    } else {
+      loansQ = loansQ.eq("user_id", user.id);
+    }
+
+    const { data, error } = await loansQ;
 
     if (error) throw error;
     setLoans(data ?? []);
@@ -295,6 +421,31 @@ export default function App() {
     if (newMonthlyOverride.trim() !== "") return Number(newMonthlyOverride);
     return computedNewMonthly;
   }, [newMonthlyOverride, computedNewMonthly]);
+
+  async function addLoanShare() {
+    if (!selectedLoanId) return;
+    const email = shareEmail.trim().toLowerCase();
+    if (!email) {
+      setShareError("Invite email is required.");
+      return;
+    }
+    setShareLoading(true);
+    setShareError("");
+    try {
+      const { error } = await supabase.from("loan_shares").insert([
+        {
+          loan_id: selectedLoanId,
+          invited_email: email,
+        },
+      ]);
+      if (error) throw error;
+      setShareEmail("");
+    } catch (e) {
+      setShareError(e.message ?? String(e));
+    } finally {
+      setShareLoading(false);
+    }
+  }
 
   async function createLoan() {
     if (!user) return;
@@ -526,16 +677,31 @@ export default function App() {
   }
 
   /** ---------- Render ---------- **/
-  if (!user) {
+  if (!user || authView === "reset-password") {
     return (
       <AuthPanel
+        authView={authView}
         authEmail={authEmail}
         authPassword={authPassword}
+        resetPassword={resetPassword}
+        resetPasswordConfirm={resetPasswordConfirm}
         authError={authError}
+        authMessage={authMessage}
+        authBusy={authBusy}
         onEmailChange={setAuthEmail}
         onPasswordChange={setAuthPassword}
+        onResetPasswordChange={setResetPassword}
+        onResetPasswordConfirmChange={setResetPasswordConfirm}
         onSignIn={signIn}
         onSignUp={signUp}
+        onRequestPasswordReset={requestPasswordReset}
+        onUpdatePassword={updatePassword}
+        onShowForgotPassword={() => {
+          setAuthView("forgot-password");
+          setAuthError("");
+          setAuthMessage("");
+        }}
+        onBackToSignIn={backToSignIn}
       />
     );
   }
@@ -638,6 +804,12 @@ export default function App() {
               scheduled={scheduled}
               events={events}
               onSelectLoan={setSelectedLoanId}
+              currentUserId={user.id}
+              shareEmail={shareEmail}
+              shareLoading={shareLoading}
+              shareError={shareError}
+              onShareEmailChange={setShareEmail}
+              onAddShare={addLoanShare}
               payDate={payDate}
               payAmount={payAmount}
               payKind={payKind}
@@ -661,6 +833,12 @@ export default function App() {
               scheduled={scheduled}
               events={events}
               onSelectLoan={setSelectedLoanId}
+              currentUserId={user.id}
+              shareEmail={shareEmail}
+              shareLoading={shareLoading}
+              shareError={shareError}
+              onShareEmailChange={setShareEmail}
+              onAddShare={addLoanShare}
               scheduledWithStatus={scheduledWithStatus}
               paidCount={paidCount}
               partialCount={partialCount}
@@ -679,6 +857,12 @@ export default function App() {
               scheduled={scheduled}
               events={events}
               onSelectLoan={setSelectedLoanId}
+              currentUserId={user.id}
+              shareEmail={shareEmail}
+              shareLoading={shareLoading}
+              shareError={shareError}
+              onShareEmailChange={setShareEmail}
+              onAddShare={addLoanShare}
               tab={tab}
               onTabChange={setTab}
               actualSchedule={actualSchedule}

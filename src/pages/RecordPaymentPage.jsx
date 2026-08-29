@@ -9,6 +9,12 @@ export default function RecordPaymentPage({
   scheduled,
   events,
   onSelectLoan,
+  currentUserId,
+  shareEmail,
+  shareLoading,
+  shareError,
+  onShareEmailChange,
+  onAddShare,
   payDate,
   payAmount,
   payKind,
@@ -30,6 +36,12 @@ export default function RecordPaymentPage({
           scheduled={scheduled}
           events={events}
           onSelectLoan={onSelectLoan}
+          currentUserId={currentUserId}
+          shareEmail={shareEmail}
+          shareLoading={shareLoading}
+          shareError={shareError}
+          onShareEmailChange={onShareEmailChange}
+          onAddShare={onAddShare}
         />
       </section>
 
