@@ -1,4 +1,5 @@
 import LoanSelector from "../components/LoanSelector";
+import LumpSumPaymentForm from "../components/LumpSumPaymentForm";
 import PaymentForm from "../components/PaymentForm";
 
 export default function RecordPaymentPage({
@@ -24,6 +25,8 @@ export default function RecordPaymentPage({
   onPayKindChange,
   onPayNoteChange,
   onAddPayment,
+  paymentLoading,
+  onAddLumpSumPayment,
 }) {
   return (
     <div className="page-stack">
@@ -63,6 +66,16 @@ export default function RecordPaymentPage({
             Select a loan to record a payment.
           </div>
         )}
+      </section>
+
+      <section className="panel">
+        <LumpSumPaymentForm
+          loans={loans}
+          currentUserId={currentUserId}
+          defaultDate={payDate}
+          loading={paymentLoading}
+          onAddLumpSumPayment={onAddLumpSumPayment}
+        />
       </section>
     </div>
   );

@@ -17,6 +17,7 @@ import {
   normalizeRatePeriods,
 } from "./loanMath";
 import { exportRowsToCSV } from "./csv";
+import { allocateLumpSumPayment } from "./paymentAllocation";
 import { todayUtcDateString } from "./utils/format";
 import AppHeader from "./components/AppHeader";
 import AuthPanel from "./components/AuthPanel";
@@ -232,7 +233,7 @@ export default function App() {
 
     let loansQ = supabase
       .from("loans")
-      .select("id,name,created_at,user_id")
+      .select("id,name,created_at,user_id,fixed_monthly_payment")
       .order("created_at", { ascending: false });
 
     if (sharedIds.length) {
@@ -562,6 +563,74 @@ export default function App() {
     }
   }
 
+  async function addLumpSumPayment({
+    paidDate,
+    amount,
+    selectedLoanIds,
+    extraLoanId,
+    note,
+  }) {
+    if (!user) return false;
+    setLoading(true);
+    setAppError("");
+    try {
+      if (!paidDate) throw new Error("Paid date is required.");
+
+      const selectedIds = new Set(selectedLoanIds);
+      const selectedLoans = loans.filter(
+        (candidate) =>
+          selectedIds.has(candidate.id) && candidate.user_id === user.id,
+      );
+      if (selectedLoans.length !== selectedIds.size) {
+        throw new Error("One or more selected loans cannot be edited.");
+      }
+
+      const allocation = allocateLumpSumPayment({
+        amount,
+        selectedLoans,
+        extraLoanId,
+      });
+      const trimmedNote = note.trim();
+      const regularNote = trimmedNote
+        ? `Lump-sum payment — ${trimmedNote}`
+        : "Lump-sum payment";
+      const extraNote = trimmedNote
+        ? `Lump-sum remainder — ${trimmedNote}`
+        : "Lump-sum remainder";
+      const paymentRows = allocation.regularAllocations.map((item) => ({
+        loan_id: item.loanId,
+        paid_date: paidDate,
+        amount: item.amount,
+        kind: "monthly",
+        note: regularNote,
+      }));
+
+      if (allocation.extraAllocation) {
+        paymentRows.push({
+          loan_id: allocation.extraAllocation.loanId,
+          paid_date: paidDate,
+          amount: allocation.extraAllocation.amount,
+          kind: "extra",
+          note: extraNote,
+        });
+      }
+
+      const { error } = await supabase
+        .from("payment_events")
+        .insert(paymentRows);
+      if (error) throw error;
+
+      await refreshLoans();
+      if (selectedLoanId) await loadLoanData(selectedLoanId);
+      return true;
+    } catch (error) {
+      setAppError(error.message ?? String(error));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function deletePaymentEvent(eventId) {
     setLoading(true);
     setAppError("");
@@ -825,6 +894,8 @@ export default function App() {
               onPayKindChange={setPayKind}
               onPayNoteChange={setPayNote}
               onAddPayment={addPaymentEvent}
+              paymentLoading={loading}
+              onAddLumpSumPayment={addLumpSumPayment}
             />
           }
         />

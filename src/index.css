@@ -165,6 +165,72 @@ h4 {
   background: #f0fdf4;
 }
 
+.form-help {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.lump-sum-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.lump-sum-loans {
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.lump-sum-loans legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.lump-sum-loan {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+}
+
+.lump-sum-loan + .lump-sum-loan {
+  border-top: 1px solid #eef1f6;
+}
+
+.lump-sum-loan input {
+  margin: 0;
+}
+
+.lump-sum-loan span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lump-sum-extra-target {
+  max-width: 420px;
+  margin-bottom: 16px;
+}
+
+.lump-sum-preview {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid #c9d6ff;
+  border-radius: 12px;
+  background: #f4f7ff;
+  font-size: 13px;
+}
+
+.lump-sum-preview ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
 .app-shell {
   max-width: 1200px;
   margin: 0 auto;

@@ -108,7 +108,11 @@ export function buildActualEventsFromPaymentEvents(paymentEvents) {
       amount: Number(e.amount),
       note: e.note ?? null,
     }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
+    .sort((a, b) => {
+      const dateOrder = a.date.getTime() - b.date.getTime();
+      if (dateOrder !== 0 || a.type === b.type) return dateOrder;
+      return a.type === "monthly" ? -1 : 1;
+    });
 }
 
 // Build amortization schedule using ACTUAL events only (no auto monthly events).
@@ -293,12 +297,13 @@ export function buildForecastScheduleFixedPayment({
       amount: Number(p.amount),
     }));
 
-  // Sort: by date; on same day apply extra before monthly
+  // Sort: by date; on the same day cover accrued interest with the monthly
+  // payment before applying the principal-only extra payment.
   const events = [...monthlyEvents, ...extraEvents].sort((a, b) => {
     const t = a.date.getTime() - b.date.getTime();
     if (t !== 0) return t;
     if (a.type === b.type) return 0;
-    return a.type === "extra" ? -1 : 1;
+    return a.type === "monthly" ? -1 : 1;
   });
 
   let bal = Number(principal);
