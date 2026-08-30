@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import {
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import { buildScheduledPayments } from "./scheduleGen";
 import {
@@ -38,6 +44,8 @@ function monthBounds(monthStr) {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+
   /** ---------- Auth state ---------- **/
   const [session, setSession] = useState(null);
   const user = session?.user ?? null;
@@ -152,7 +160,7 @@ export default function App() {
       if (error) throw error;
 
       await supabase.auth.signOut();
-      window.history.replaceState({}, "", "/");
+      navigate("/", { replace: true });
       setResetPassword("");
       setResetPasswordConfirm("");
       setAuthView("sign-in");
@@ -171,9 +179,7 @@ export default function App() {
     if (authView === "reset-password") {
       await supabase.auth.signOut();
     }
-    if (window.location.pathname === "/reset-password") {
-      window.history.replaceState({}, "", "/");
-    }
+    navigate("/", { replace: true });
     setResetPassword("");
     setResetPasswordConfirm("");
     setAuthView("sign-in");
@@ -872,6 +878,7 @@ export default function App() {
             />
           }
         />
+        <Route path="/reset-password" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
