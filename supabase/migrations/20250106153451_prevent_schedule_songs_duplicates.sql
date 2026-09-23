@@ -1,2 +1,2 @@
-ALTER TABLE schedule_songs
-ADD CONSTRAINT unique_schedule_song UNIQUE (schedule_id, song_id);
+-- Legacy music-scheduling migration marker.
+-- Original SQL: ../legacy-migrations/music/20250106153451_prevent_schedule_songs_duplicates.sql

@@ -11,6 +11,8 @@ create unique index if not exists loan_shares_unique
 create index if not exists loan_shares_email_idx
   on public.loan_shares (invited_email);
 
+grant select, insert, update, delete on public.loan_shares to authenticated;
+
 alter table public.loan_shares enable row level security;
 alter table public.loans enable row level security;
 alter table public.rate_periods enable row level security;

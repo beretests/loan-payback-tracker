@@ -1,0 +1,2 @@
+-- Intentionally empty. Product examples belong in tests so local resets do not
+-- create financial records for an arbitrary user.
