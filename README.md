@@ -1,6 +1,7 @@
 # Debt Payback and Expense Tracker
 
-A React and Supabase application for tracking loans, scheduled payments, actual payments, shared debts, and lump-sum allocations. The product roadmap expands this foundation into expense tracking, income and cash-flow planning, richer debt types, payoff recommendations, and a secure live dashboard.
+A React and Supabase personal-finance app for expenses, income, shared debts,
+lump-sum payments, snowball or avalanche planning, and secure live dashboards.
 
 ## Requirements
 
@@ -62,3 +63,6 @@ Do not run `supabase db reset --linked`; it is destructive. Use `supabase db res
 ## Architecture roadmap
 
 The deployable, stacked pull-request sequence is documented in [docs/roadmap.md](docs/roadmap.md). Every step has its own worktree and builds on the preceding branch.
+
+Production setup and recovery checks are documented in
+[docs/deployment.md](docs/deployment.md).

@@ -67,7 +67,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
   return (
     <div className="app-shell">
       <AppHeader
-        title="Loan Payment Tracker"
+        title="Debt Payback and Expense Tracker"
         userEmail={user.email}
         connectionState={connectionState}
         onSignOut={onSignOut}

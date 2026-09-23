@@ -31,7 +31,7 @@ export default function AuthPanel({
   return (
     <main className="auth-shell">
       <section className="auth-card" aria-labelledby="auth-title">
-        <h2 id="auth-title">Loan Payback Tracker</h2>
+        <h2 id="auth-title">Debt Payback and Expense Tracker</h2>
 
         {isForgotPassword ? (
           <p>Enter your email and we’ll send you a link to reset your password.</p>

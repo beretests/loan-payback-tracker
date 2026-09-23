@@ -8,7 +8,9 @@ export default function AppHeader({
     <header className="app-header">
       <div>
         <div className="app-title">{title}</div>
-        <div className="app-subtitle">Track, plan, and stay on top of loans</div>
+        <div className="app-subtitle">
+          Track spending, plan cash flow, and pay down debt
+        </div>
       </div>
       <div className="app-user">
         <span
