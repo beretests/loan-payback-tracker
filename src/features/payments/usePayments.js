@@ -34,6 +34,7 @@ export function usePayments({
           amount,
           kind: payKind,
           note: payNote.trim() || null,
+          recorded_by: user.id,
         },
       ]);
       if (error) throw error;
@@ -86,6 +87,7 @@ export function usePayments({
         amount: item.amount,
         kind: "monthly",
         note: regularNote,
+        recorded_by: user.id,
       }));
       if (allocation.extraAllocation) {
         paymentRows.push({
@@ -94,6 +96,7 @@ export function usePayments({
           amount: allocation.extraAllocation.amount,
           kind: "extra",
           note: extraNote,
+          recorded_by: user.id,
         });
       }
 

@@ -42,6 +42,8 @@ export default function DebtDashboardPage({ user }) {
                 <th className="data-table__head">Rate</th>
                 <th className="data-table__head">Minimum</th>
                 <th className="data-table__head">Next due</th>
+                <th className="data-table__head">Your payments</th>
+                <th className="data-table__head">Shared payments</th>
               </tr>
             </thead>
             <tbody>
@@ -53,11 +55,13 @@ export default function DebtDashboardPage({ user }) {
                   <td>{pct(debt.currentAnnualRate)}</td>
                   <td>{money(Number(debt.minimum_payment))}</td>
                   <td>{debt.nextDueDate}</td>
+                  <td>{money(debt.yourContributions)}</td>
+                  <td>{money(debt.sharedContributions)}</td>
                 </tr>
               ))}
               {!dashboard.debts.length && (
                 <tr>
-                  <td className="data-table__empty" colSpan="6">
+                  <td className="data-table__empty" colSpan="8">
                     No debts to display.
                   </td>
                 </tr>

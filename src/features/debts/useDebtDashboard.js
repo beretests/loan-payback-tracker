@@ -49,6 +49,15 @@ export function useDebtDashboard(user) {
           currentBalance: actual.endingBalance,
           currentAnnualRate: Number(currentRate?.annual_rate ?? 0),
           nextDueDate: nextDueDate(debt.due_day, today),
+          yourContributions: (debt.payment_events ?? [])
+            .filter((event) => event.recorded_by === user.id)
+            .reduce((sum, event) => sum + Number(event.amount || 0), 0),
+          sharedContributions: (debt.payment_events ?? [])
+            .filter(
+              (event) =>
+                event.recorded_by && event.recorded_by !== user.id,
+            )
+            .reduce((sum, event) => sum + Number(event.amount || 0), 0),
         };
       }),
     );
