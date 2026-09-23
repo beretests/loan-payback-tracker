@@ -84,6 +84,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
           path="/"
           element={
             <HomePage
+              user={user}
               monthlyOwingMonth={monthly.month}
               monthlyOwingRows={monthly.rows}
               monthlyOwingTotalScheduled={monthly.totalScheduled}
