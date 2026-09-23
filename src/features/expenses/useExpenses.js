@@ -21,6 +21,12 @@ export function useExpenses(user) {
     setLoading(true);
     setError("");
     try {
+      const { error: materializeError } = await supabase.rpc(
+        "materialize_recurring_expenses",
+        { target_date: new Date().toISOString().slice(0, 10) },
+      );
+      if (materializeError) throw materializeError;
+
       let categoryResult = await supabase
         .from("expense_categories")
         .select("id,name,color,is_default")

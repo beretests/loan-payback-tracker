@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { expensesForMonth, summarizeExpenses } from "../features/expenses/expenseSummary";
 import { useExpenses } from "../features/expenses/useExpenses";
 import { money, todayUtcDateString } from "../utils/format";
+import RecurringExpensesPanel from "../components/RecurringExpensesPanel";
 
 const PAYMENT_METHODS = [
   ["cash", "Cash"],
@@ -111,6 +112,12 @@ export default function ExpensesPage({ user }) {
           </div>
         )}
       </section>
+
+      <RecurringExpensesPanel
+        user={user}
+        categories={expenseData.categories}
+        onExpensesChanged={expenseData.refresh}
+      />
 
       <section className="panel">
         <h3>{editingId ? "Edit expense" : "Add expense"}</h3>

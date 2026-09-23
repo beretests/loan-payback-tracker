@@ -1,0 +1,115 @@
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "../../supabaseClient";
+
+export function useRecurringExpenses(user, onExpensesChanged) {
+  const [definitions, setDefinitions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const refresh = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    setError("");
+    try {
+      const { data, error: loadError } = await supabase
+        .from("recurring_transactions")
+        .select("*,expense_categories(name)")
+        .eq("user_id", user.id)
+        .eq("transaction_type", "expense")
+        .is("deleted_at", null)
+        .order("next_occurrence_on");
+      if (loadError) throw loadError;
+      setDefinitions(data ?? []);
+    } catch (loadError) {
+      setError(loadError.message ?? String(loadError));
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  async function createDefinition(values) {
+    const amount = Number(values.amount);
+    if (!values.description.trim()) {
+      setError("Description is required.");
+      return false;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError("Amount must be greater than zero.");
+      return false;
+    }
+    if (!values.categoryId || !values.startsOn) {
+      setError("Category and start date are required.");
+      return false;
+    }
+
+    return mutate(async () => {
+      const { error: insertError } = await supabase
+        .from("recurring_transactions")
+        .insert([
+          {
+            user_id: user.id,
+            category_id: values.categoryId,
+            transaction_type: "expense",
+            description: values.description.trim(),
+            amount,
+            day_of_month: Number(values.startsOn.slice(8, 10)),
+            payment_method: values.paymentMethod,
+            starts_on: values.startsOn,
+            next_occurrence_on: values.startsOn,
+          },
+        ]);
+      if (insertError) throw insertError;
+    });
+  }
+
+  async function toggleDefinition(definition) {
+    return mutate(async () => {
+      const { error: updateError } = await supabase
+        .from("recurring_transactions")
+        .update({ is_active: !definition.is_active })
+        .eq("id", definition.id)
+        .eq("user_id", user.id);
+      if (updateError) throw updateError;
+    });
+  }
+
+  async function deleteDefinition(id) {
+    return mutate(async () => {
+      const { error: deleteError } = await supabase
+        .from("recurring_transactions")
+        .update({ deleted_at: new Date().toISOString(), is_active: false })
+        .eq("id", id)
+        .eq("user_id", user.id);
+      if (deleteError) throw deleteError;
+    });
+  }
+
+  async function mutate(operation) {
+    setLoading(true);
+    setError("");
+    try {
+      await operation();
+      await refresh();
+      await onExpensesChanged();
+      return true;
+    } catch (mutationError) {
+      setError(mutationError.message ?? String(mutationError));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return {
+    definitions,
+    loading,
+    error,
+    createDefinition,
+    toggleDefinition,
+    deleteDefinition,
+  };
+}
