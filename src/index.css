@@ -448,6 +448,13 @@ h4 {
   font-weight: 700;
 }
 
+.planner-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .table-wrap {
   border: 1px solid var(--border);
   border-radius: 12px;

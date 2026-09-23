@@ -1,8 +1,22 @@
+import { useMemo, useState } from "react";
 import { useDebtDashboard } from "../features/debts/useDebtDashboard";
-import { money, pct } from "../utils/format";
+import { buildRepaymentPlan } from "../features/debts/repaymentPlan";
+import { money, pct, todayUtcDateString } from "../utils/format";
 
 export default function DebtDashboardPage({ user }) {
   const dashboard = useDebtDashboard(user);
+  const [strategy, setStrategy] = useState("avalanche");
+  const [extraMonthly, setExtraMonthly] = useState("0");
+  const plan = useMemo(
+    () =>
+      buildRepaymentPlan({
+        debts: dashboard.debts,
+        extraMonthly: Number(extraMonthly || 0),
+        strategy,
+        startMonth: todayUtcDateString().slice(0, 7),
+      }),
+    [dashboard.debts, extraMonthly, strategy],
+  );
 
   return (
     <div className="page-stack">
@@ -28,6 +42,59 @@ export default function DebtDashboardPage({ user }) {
           <div className="auth-status auth-status--error" role="alert">
             {dashboard.error}
           </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="section-heading">
+          <div>
+            <h3>Repayment strategy</h3>
+            <p>
+              Keep the total monthly debt budget constant as balances are paid
+              off.
+            </p>
+          </div>
+        </div>
+        <div className="planner-controls">
+          <label>
+            Strategy
+            <select
+              value={strategy}
+              onChange={(event) => setStrategy(event.target.value)}
+            >
+              <option value="avalanche">Avalanche — highest rate first</option>
+              <option value="snowball">Snowball — smallest balance first</option>
+            </select>
+          </label>
+          <label>
+            Extra per month
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={extraMonthly}
+              onChange={(event) => setExtraMonthly(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="metric-grid">
+          <Metric
+            label="Projected debt-free month"
+            value={plan.payoffDate ?? "Needs a larger payment"}
+          />
+          <Metric
+            label="Projected interest"
+            value={money(plan.totalInterest)}
+          />
+          <Metric
+            label="Months remaining"
+            value={plan.months ?? "—"}
+          />
+        </div>
+        {plan.payoffOrder.length > 0 && (
+          <p className="form-help">
+            Payoff order: {plan.payoffOrder.join(" → ")}
+          </p>
         )}
       </section>
 
