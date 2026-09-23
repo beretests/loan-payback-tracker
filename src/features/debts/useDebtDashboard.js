@@ -7,8 +7,10 @@ import {
 import { supabase } from "../../supabaseClient";
 import { todayUtcDateString } from "../../utils/format";
 import { nextDueDate, summarizeDebts } from "./debtDashboard";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useDebtDashboard(user) {
+  const { revision } = useFinanceRealtime();
   const [debts, setDebts] = useState([]);
   const [error, setError] = useState("");
 
@@ -67,7 +69,7 @@ export function useDebtDashboard(user) {
   useEffect(() => {
     const timer = window.setTimeout(refresh, 0);
     return () => window.clearTimeout(timer);
-  }, [refresh]);
+  }, [refresh, revision]);
 
   return { debts, summary: summarizeDebts(debts), error, refresh };
 }

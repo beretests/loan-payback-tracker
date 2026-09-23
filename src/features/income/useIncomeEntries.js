@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useIncomeEntries(user) {
+  const { revision } = useFinanceRealtime();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +31,7 @@ export function useIncomeEntries(user) {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, revision]);
 
   async function createEntry(values) {
     return save(async () => {

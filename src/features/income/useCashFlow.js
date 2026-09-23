@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { monthBounds } from "../dashboard/monthRange";
 import { supabase } from "../../supabaseClient";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useCashFlow(user, month) {
+  const { revision } = useFinanceRealtime();
   const [summary, setSummary] = useState({
     income: 0,
     spending: 0,
@@ -48,7 +50,7 @@ export function useCashFlow(user, month) {
     return () => {
       active = false;
     };
-  }, [user, month]);
+  }, [user, month, revision]);
 
   return { ...summary, error };
 }

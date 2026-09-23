@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useRecentActivity(user) {
+  const { revision } = useFinanceRealtime();
   const [activity, setActivity] = useState([]);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function useRecentActivity(user) {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, revision]);
 
   return activity;
 }

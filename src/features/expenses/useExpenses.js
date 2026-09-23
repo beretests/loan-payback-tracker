@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 const DEFAULT_CATEGORIES = [
   ["Housing", "#2563eb"],
@@ -11,6 +12,7 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export function useExpenses(user) {
+  const { revision } = useFinanceRealtime();
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +78,7 @@ export function useExpenses(user) {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, revision]);
 
   async function createExpense(values) {
     return save(async () => {

@@ -17,8 +17,10 @@ import { useLoanCalculations } from "../features/loans/useLoanCalculations";
 import { useLoanData } from "../features/loans/useLoanData";
 import { usePayments } from "../features/payments/usePayments";
 import AppNavigation from "./AppNavigation";
+import { useFinanceRealtime } from "../features/realtime/FinanceRealtimeContext";
 
 export default function AuthenticatedApp({ user, onSignOut }) {
+  const { connectionState } = useFinanceRealtime();
   const [historyTab, setHistoryTab] = useState("actual");
   const loans = useLoanData(user);
   const monthly = useMonthlyOwing(user, loans.loans);
@@ -67,6 +69,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
       <AppHeader
         title="Loan Payment Tracker"
         userEmail={user.email}
+        connectionState={connectionState}
         onSignOut={onSignOut}
       />
 

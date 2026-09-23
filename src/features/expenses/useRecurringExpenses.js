@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useRecurringExpenses(user, onExpensesChanged) {
+  const { revision } = useFinanceRealtime();
   const [definitions, setDefinitions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +31,7 @@ export function useRecurringExpenses(user, onExpensesChanged) {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, revision]);
 
   async function createDefinition(values) {
     const amount = Number(values.amount);

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useLoanData(user) {
+  const { revision } = useFinanceRealtime();
   const [loans, setLoans] = useState([]);
   const [selectedLoanId, setSelectedLoanId] = useState("");
   const [loan, setLoan] = useState(null);
@@ -88,7 +90,7 @@ export function useLoanData(user) {
     refreshLoans().catch((error) =>
       setAppError(error.message ?? String(error)),
     );
-  }, [refreshLoans]);
+  }, [refreshLoans, revision]);
 
   useEffect(() => {
     if (user && selectedLoanId) loadLoanData(selectedLoanId);

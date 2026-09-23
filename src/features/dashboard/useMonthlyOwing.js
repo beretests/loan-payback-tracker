@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { todayUtcDateString } from "../../utils/format";
 import { monthBounds } from "./monthRange";
+import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
 
 export function useMonthlyOwing(user, loans) {
+  const { revision } = useFinanceRealtime();
   const [month, setMonth] = useState(todayUtcDateString().slice(0, 7));
   const [rows, setRows] = useState([]);
   const [totalScheduled, setTotalScheduled] = useState(0);
@@ -73,7 +75,7 @@ export function useMonthlyOwing(user, loans) {
     return () => {
       active = false;
     };
-  }, [user, month, loans]);
+  }, [user, month, loans, revision]);
 
   return {
     month,

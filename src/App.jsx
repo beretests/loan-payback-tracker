@@ -1,6 +1,7 @@
 import AuthPanel from "./components/AuthPanel";
 import AuthenticatedApp from "./app/AuthenticatedApp";
 import { useAuth } from "./features/auth/useAuth";
+import { FinanceRealtimeProvider } from "./features/realtime/FinanceRealtimeProvider";
 
 export default function App() {
   const auth = useAuth();
@@ -30,5 +31,9 @@ export default function App() {
     );
   }
 
-  return <AuthenticatedApp user={auth.user} onSignOut={auth.signOut} />;
+  return (
+    <FinanceRealtimeProvider user={auth.user}>
+      <AuthenticatedApp user={auth.user} onSignOut={auth.signOut} />
+    </FinanceRealtimeProvider>
+  );
 }
