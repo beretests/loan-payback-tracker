@@ -24,7 +24,7 @@ select col_not_null(
   'minimum payment is always present'
 );
 select col_not_null('public', 'loans', 'due_day', 'due day is always present');
-select has_check('public', 'loans', 'loans_debt_type_check', 'types are constrained');
+select has_check('public', 'loans', 'debt fields are constrained');
 
 select * from finish();
 rollback;
