@@ -8,6 +8,8 @@ import SchedulePage from "../pages/SchedulePage";
 import HistoryForecastPage from "../pages/HistoryForecastPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import ExpensesPage from "../pages/ExpensesPage";
+import IncomePage from "../pages/IncomePage";
+import { useCashFlow } from "../features/income/useCashFlow";
 import { useMonthlyOwing } from "../features/dashboard/useMonthlyOwing";
 import { useCreateLoan } from "../features/loans/useCreateLoan";
 import { useLoanCalculations } from "../features/loans/useLoanCalculations";
@@ -19,6 +21,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
   const [historyTab, setHistoryTab] = useState("actual");
   const loans = useLoanData(user);
   const monthly = useMonthlyOwing(user, loans.loans);
+  const cashFlow = useCashFlow(user, monthly.month);
   const createLoan = useCreateLoan({
     user,
     refreshLoans: loans.refreshLoans,
@@ -86,6 +89,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               monthlyOwingTotalPaid={monthly.totalPaid}
               monthlyOwingLoading={monthly.loading}
               monthlyOwingError={monthly.error}
+              cashFlow={cashFlow}
               onMonthChange={monthly.setMonth}
             />
           }
@@ -94,6 +98,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
           path="/expenses"
           element={<ExpensesPage user={user} />}
         />
+        <Route path="/income" element={<IncomePage user={user} />} />
         <Route
           path="/create"
           element={
