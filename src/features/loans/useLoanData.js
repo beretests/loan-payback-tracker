@@ -28,7 +28,9 @@ export function useLoanData(user) {
 
     let query = supabase
       .from("loans")
-      .select("id,name,created_at,user_id,fixed_monthly_payment")
+      .select(
+        "id,name,created_at,user_id,fixed_monthly_payment,principal,start_date,debt_type,minimum_payment,credit_limit,due_day",
+      )
       .order("created_at", { ascending: false });
     query = sharedIds.length
       ? query.or(`user_id.eq.${user.id},id.in.(${sharedIds.join(",")})`)

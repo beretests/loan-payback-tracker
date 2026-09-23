@@ -17,6 +17,10 @@ export function useCreateLoan({
   const [newDayCount, setNewDayCount] = useState("");
   const [newPrimePct, setNewPrimePct] = useState("");
   const [newMonthlyOverride, setNewMonthlyOverride] = useState("");
+  const [newDebtType, setNewDebtType] = useState("personal_loan");
+  const [newMinimumPayment, setNewMinimumPayment] = useState("");
+  const [newCreditLimit, setNewCreditLimit] = useState("");
+  const [newDueDay, setNewDueDay] = useState("");
 
   const newLoanRateDecimal = useMemo(() => {
     const primePercent = Number(newPrimePct);
@@ -58,6 +62,13 @@ export function useCreateLoan({
       const amortMonths = Number(newAmortMonths);
       const dayCount = Number(newDayCount);
       const monthlyPayment = Number(newFixedMonthlyPayment);
+      const minimumPayment =
+        newMinimumPayment.trim() === ""
+          ? monthlyPayment
+          : Number(newMinimumPayment);
+      const creditLimit =
+        newCreditLimit.trim() === "" ? null : Number(newCreditLimit);
+      const dueDay = Number(newDueDay);
 
       if (!name) throw new Error("Loan name is required.");
       if (!newStartDate) throw new Error("Start date is required.");
@@ -76,6 +87,15 @@ export function useCreateLoan({
       if (!Number.isFinite(monthlyPayment) || monthlyPayment <= 0) {
         throw new Error("Monthly payment must be a positive number.");
       }
+      if (!Number.isFinite(minimumPayment) || minimumPayment < 0) {
+        throw new Error("Minimum payment must be zero or greater.");
+      }
+      if (creditLimit !== null && (!Number.isFinite(creditLimit) || creditLimit <= 0)) {
+        throw new Error("Credit limit must be a positive number.");
+      }
+      if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
+        throw new Error("Due day must be between 1 and 31.");
+      }
 
       const { data: created, error: loanError } = await supabase
         .from("loans")
@@ -88,6 +108,10 @@ export function useCreateLoan({
             amort_months: amortMonths,
             day_count_basis: dayCount,
             fixed_monthly_payment: monthlyPayment,
+            debt_type: newDebtType,
+            minimum_payment: minimumPayment,
+            credit_limit: creditLimit,
+            due_day: dueDay,
           },
         ])
         .select()
@@ -132,6 +156,10 @@ export function useCreateLoan({
     newMonthlyOverride,
     computedNewMonthly,
     newLoanRateDecimal,
+    newDebtType,
+    newMinimumPayment,
+    newCreditLimit,
+    newDueDay,
     setNewName,
     setNewPrincipal,
     setNewStartDate,
@@ -139,6 +167,10 @@ export function useCreateLoan({
     setNewDayCount,
     setNewPrimePct,
     setNewMonthlyOverride,
+    setNewDebtType,
+    setNewMinimumPayment,
+    setNewCreditLimit,
+    setNewDueDay,
     createLoan,
   };
 }

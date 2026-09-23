@@ -10,6 +10,10 @@ export default function CreateLoanPage({
   newMonthlyOverride,
   computedNewMonthly,
   newLoanRateDecimal,
+  newDebtType,
+  newMinimumPayment,
+  newCreditLimit,
+  newDueDay,
   onNameChange,
   onPrincipalChange,
   onStartDateChange,
@@ -17,6 +21,10 @@ export default function CreateLoanPage({
   onDayCountChange,
   onPrimePctChange,
   onMonthlyOverrideChange,
+  onDebtTypeChange,
+  onMinimumPaymentChange,
+  onCreditLimitChange,
+  onDueDayChange,
   onCreateLoan,
 }) {
   return (
@@ -32,6 +40,10 @@ export default function CreateLoanPage({
           newMonthlyOverride={newMonthlyOverride}
           computedNewMonthly={computedNewMonthly}
           newLoanRateDecimal={newLoanRateDecimal}
+          newDebtType={newDebtType}
+          newMinimumPayment={newMinimumPayment}
+          newCreditLimit={newCreditLimit}
+          newDueDay={newDueDay}
           onNameChange={onNameChange}
           onPrincipalChange={onPrincipalChange}
           onStartDateChange={onStartDateChange}
@@ -39,6 +51,10 @@ export default function CreateLoanPage({
           onDayCountChange={onDayCountChange}
           onPrimePctChange={onPrimePctChange}
           onMonthlyOverrideChange={onMonthlyOverrideChange}
+          onDebtTypeChange={onDebtTypeChange}
+          onMinimumPaymentChange={onMinimumPaymentChange}
+          onCreditLimitChange={onCreditLimitChange}
+          onDueDayChange={onDueDayChange}
           onCreateLoan={onCreateLoan}
         />
       </section>

@@ -112,6 +112,10 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               newMonthlyOverride={createLoan.newMonthlyOverride}
               computedNewMonthly={createLoan.computedNewMonthly}
               newLoanRateDecimal={createLoan.newLoanRateDecimal}
+              newDebtType={createLoan.newDebtType}
+              newMinimumPayment={createLoan.newMinimumPayment}
+              newCreditLimit={createLoan.newCreditLimit}
+              newDueDay={createLoan.newDueDay}
               onNameChange={createLoan.setNewName}
               onPrincipalChange={createLoan.setNewPrincipal}
               onStartDateChange={createLoan.setNewStartDate}
@@ -119,6 +123,10 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               onDayCountChange={createLoan.setNewDayCount}
               onPrimePctChange={createLoan.setNewPrimePct}
               onMonthlyOverrideChange={createLoan.setNewMonthlyOverride}
+              onDebtTypeChange={createLoan.setNewDebtType}
+              onMinimumPaymentChange={createLoan.setNewMinimumPayment}
+              onCreditLimitChange={createLoan.setNewCreditLimit}
+              onDueDayChange={createLoan.setNewDueDay}
               onCreateLoan={createLoan.createLoan}
             />
           }

@@ -10,6 +10,10 @@ export default function CreateLoanForm({
   newMonthlyOverride,
   computedNewMonthly,
   newLoanRateDecimal,
+  newDebtType,
+  newMinimumPayment,
+  newCreditLimit,
+  newDueDay,
   onNameChange,
   onPrincipalChange,
   onStartDateChange,
@@ -17,11 +21,15 @@ export default function CreateLoanForm({
   onDayCountChange,
   onPrimePctChange,
   onMonthlyOverrideChange,
+  onDebtTypeChange,
+  onMinimumPaymentChange,
+  onCreditLimitChange,
+  onDueDayChange,
   onCreateLoan,
 }) {
   return (
     <div>
-      <h3>Create a new loan</h3>
+      <h3>Create a new debt</h3>
       <div
         style={{
           display: "grid",
@@ -40,6 +48,19 @@ export default function CreateLoanForm({
           />
         </label>
         <label>
+          Debt type
+          <select
+            value={newDebtType}
+            onChange={(e) => onDebtTypeChange(e.target.value)}
+          >
+            <option value="personal_loan">Personal loan</option>
+            <option value="credit_card">Credit card</option>
+            <option value="line_of_credit">Line of credit</option>
+            <option value="mortgage">Mortgage</option>
+            <option value="informal_debt">Informal debt</option>
+          </select>
+        </label>
+        <label>
           Principal (CAD)
           <input
             type="number"
@@ -48,6 +69,38 @@ export default function CreateLoanForm({
             placeholder="Principal (CAD)"
             aria-label="Principal (CAD)"
             style={{ width: "100%" }}
+          />
+        </label>
+        <label>
+          Minimum monthly payment
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={newMinimumPayment}
+            onChange={(e) => onMinimumPaymentChange(e.target.value)}
+            placeholder="Defaults to calculated payment"
+          />
+        </label>
+        <label>
+          Credit limit (optional)
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={newCreditLimit}
+            onChange={(e) => onCreditLimitChange(e.target.value)}
+          />
+        </label>
+        <label>
+          Payment due day
+          <input
+            type="number"
+            min="1"
+            max="31"
+            value={newDueDay}
+            onChange={(e) => onDueDayChange(e.target.value)}
+            required
           />
         </label>
         <label>
@@ -121,7 +174,7 @@ export default function CreateLoanForm({
       </div>
 
       <button onClick={onCreateLoan} style={{ marginTop: 10 }}>
-        Create loan + schedule
+        Create debt + schedule
       </button>
     </div>
   );
