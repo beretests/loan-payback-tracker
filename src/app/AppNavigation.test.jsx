@@ -24,7 +24,11 @@ describe("AppNavigation", () => {
       "href",
       "/income",
     );
-    expect(screen.getByRole("link", { name: "Create loan" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Debts" })).toHaveAttribute(
+      "href",
+      "/debts",
+    );
+    expect(screen.getByRole("link", { name: "Create debt" })).toHaveAttribute(
       "href",
       "/create",
     );

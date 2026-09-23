@@ -10,6 +10,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import ExpensesPage from "../pages/ExpensesPage";
 import IncomePage from "../pages/IncomePage";
 import { useCashFlow } from "../features/income/useCashFlow";
+import DebtDashboardPage from "../pages/DebtDashboardPage";
 import { useMonthlyOwing } from "../features/dashboard/useMonthlyOwing";
 import { useCreateLoan } from "../features/loans/useCreateLoan";
 import { useLoanCalculations } from "../features/loans/useLoanCalculations";
@@ -99,6 +100,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
           element={<ExpensesPage user={user} />}
         />
         <Route path="/income" element={<IncomePage user={user} />} />
+        <Route path="/debts" element={<DebtDashboardPage user={user} />} />
         <Route
           path="/create"
           element={
