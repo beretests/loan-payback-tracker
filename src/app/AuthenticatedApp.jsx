@@ -7,6 +7,7 @@ import RecordPaymentPage from "../pages/RecordPaymentPage";
 import SchedulePage from "../pages/SchedulePage";
 import HistoryForecastPage from "../pages/HistoryForecastPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import ExpensesPage from "../pages/ExpensesPage";
 import { useMonthlyOwing } from "../features/dashboard/useMonthlyOwing";
 import { useCreateLoan } from "../features/loans/useCreateLoan";
 import { useLoanCalculations } from "../features/loans/useLoanCalculations";
@@ -88,6 +89,10 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               onMonthChange={monthly.setMonth}
             />
           }
+        />
+        <Route
+          path="/expenses"
+          element={<ExpensesPage user={user} />}
         />
         <Route
           path="/create"
