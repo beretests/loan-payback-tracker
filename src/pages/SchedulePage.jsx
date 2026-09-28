@@ -1,5 +1,6 @@
 import LoanSelector from "../components/LoanSelector";
 import ScheduledStatusTable from "../components/ScheduledStatusTable";
+import PageTaskBar from "../components/PageTaskBar";
 
 export default function SchedulePage({
   loans,
@@ -22,7 +23,14 @@ export default function SchedulePage({
 }) {
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="Payment schedule"
+        tasks={[
+          { target: "schedule-debt", label: "Debt & sharing", action: "Select · invite" },
+          { target: "schedule-status", label: "Schedule status", action: "View paid · partial · missed" },
+        ]}
+      />
+      <section className="panel" id="schedule-debt">
         <LoanSelector
           loans={loans}
           selectedLoanId={selectedLoanId}
@@ -40,7 +48,7 @@ export default function SchedulePage({
         />
       </section>
 
-      <section className="panel">
+      <section className="panel" id="schedule-status">
         {loan ? (
           <ScheduledStatusTable
             scheduledWithStatus={scheduledWithStatus}

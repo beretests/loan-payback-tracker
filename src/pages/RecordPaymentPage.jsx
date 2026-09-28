@@ -1,6 +1,7 @@
 import LoanSelector from "../components/LoanSelector";
 import LumpSumPaymentForm from "../components/LumpSumPaymentForm";
 import PaymentForm from "../components/PaymentForm";
+import PageTaskBar from "../components/PageTaskBar";
 
 export default function RecordPaymentPage({
   loans,
@@ -30,7 +31,15 @@ export default function RecordPaymentPage({
 }) {
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="Record payment"
+        tasks={[
+          { target: "payment-debt", label: "Debt & sharing", action: "Select · invite" },
+          { target: "single-payment", label: "Single payment", action: "Record" },
+          { target: "lump-sum-payment", label: "Lump sum", action: "Allocate across debts" },
+        ]}
+      />
+      <section className="panel" id="payment-debt">
         <LoanSelector
           loans={loans}
           selectedLoanId={selectedLoanId}
@@ -48,7 +57,7 @@ export default function RecordPaymentPage({
         />
       </section>
 
-      <section className="panel">
+      <section className="panel" id="single-payment">
         {loan ? (
           <PaymentForm
             payDate={payDate}
@@ -68,7 +77,7 @@ export default function RecordPaymentPage({
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel" id="lump-sum-payment">
         <LumpSumPaymentForm
           loans={loans}
           currentUserId={currentUserId}

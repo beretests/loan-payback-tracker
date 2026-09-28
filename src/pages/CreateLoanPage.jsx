@@ -1,4 +1,5 @@
 import CreateLoanForm from "../components/CreateLoanForm";
+import PageTaskBar from "../components/PageTaskBar";
 
 export default function CreateLoanPage({
   newName,
@@ -29,7 +30,13 @@ export default function CreateLoanPage({
 }) {
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="Create debt"
+        tasks={[
+          { target: "create-debt", label: "New debt", action: "Create debt · schedule" },
+        ]}
+      />
+      <section className="panel" id="create-debt">
         <CreateLoanForm
           newName={newName}
           newPrincipal={newPrincipal}

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useDebtDashboard } from "../features/debts/useDebtDashboard";
 import { buildRepaymentPlan } from "../features/debts/repaymentPlan";
 import { money, pct, todayUtcDateString } from "../utils/format";
+import PageTaskBar from "../components/PageTaskBar";
 
 export default function DebtDashboardPage({ user }) {
   const dashboard = useDebtDashboard(user);
@@ -20,7 +21,15 @@ export default function DebtDashboardPage({ user }) {
 
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="Debts"
+        tasks={[
+          { target: "debt-overview", label: "Overview", action: "View balances · minimums" },
+          { target: "repayment-strategy", label: "Repayment plan", action: "Compare strategies" },
+          { target: "debt-list", label: "Debt details", action: "Review due dates · contributions" },
+        ]}
+      />
+      <section className="panel" id="debt-overview">
         <div className="section-heading">
           <div>
             <h2>Debt dashboard</h2>
@@ -45,7 +54,7 @@ export default function DebtDashboardPage({ user }) {
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel" id="repayment-strategy">
         <div className="section-heading">
           <div>
             <h3>Repayment strategy</h3>
@@ -98,7 +107,7 @@ export default function DebtDashboardPage({ user }) {
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel" id="debt-list">
         <div className="table-wrap">
           <table className="data-table">
             <thead>

@@ -2,6 +2,7 @@ import LoanSelector from "../components/LoanSelector";
 import TabSwitcher from "../components/TabSwitcher";
 import ActualHistorySection from "../components/ActualHistorySection";
 import ForecastSection from "../components/ForecastSection";
+import PageTaskBar from "../components/PageTaskBar";
 
 export default function HistoryForecastPage({
   loans,
@@ -26,7 +27,15 @@ export default function HistoryForecastPage({
 }) {
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="History and forecast"
+        tasks={[
+          { target: "history-debt", label: "Debt & sharing", action: "Select · invite" },
+          { target: "history-forecast", label: "Actual history", action: "View · export · delete", onSelect: () => onTabChange("actual") },
+          { target: "history-forecast", label: "Forecast", action: "View projection", onSelect: () => onTabChange("forecast") },
+        ]}
+      />
+      <section className="panel" id="history-debt">
         <LoanSelector
           loans={loans}
           selectedLoanId={selectedLoanId}
@@ -44,7 +53,7 @@ export default function HistoryForecastPage({
         />
       </section>
 
-      <section className="panel">
+      <section className="panel" id="history-forecast">
         {loan ? (
           <>
             <TabSwitcher tab={tab} onTabChange={onTabChange} />

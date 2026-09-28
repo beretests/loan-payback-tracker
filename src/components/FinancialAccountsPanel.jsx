@@ -54,7 +54,7 @@ export default function FinancialAccountsPanel({ accountData }) {
   }
 
   return (
-    <section className="panel">
+    <section className="panel" id="payment-accounts">
       <div className="section-heading">
         <div>
           <h3>Payment accounts</h3>

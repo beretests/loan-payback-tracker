@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { summarizeCashFlow } from "../features/income/cashFlow";
 import { useIncomeEntries } from "../features/income/useIncomeEntries";
 import { money, todayUtcDateString } from "../utils/format";
+import PageTaskBar from "../components/PageTaskBar";
 
 function emptyForm() {
   return {
@@ -55,7 +56,15 @@ export default function IncomePage({ user }) {
 
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="Income"
+        tasks={[
+          { target: "income-overview", label: "Overview", action: "View total" },
+          { target: "income-form", label: "Income entry", action: "Add · edit" },
+          { target: "income-activity", label: "Monthly income", action: "View · edit · delete" },
+        ]}
+      />
+      <section className="panel" id="income-overview">
         <div className="section-heading">
           <div>
             <h2>Income</h2>
@@ -76,7 +85,7 @@ export default function IncomePage({ user }) {
         </div>
       </section>
 
-      <section className="panel">
+      <section className="panel" id="income-form">
         <h3>{editingId ? "Edit income" : "Add income"}</h3>
         <form className="expense-form" onSubmit={submit}>
           <label>
@@ -130,7 +139,7 @@ export default function IncomePage({ user }) {
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel" id="income-activity">
         <h3>Monthly income</h3>
         <div className="table-wrap">
           <table className="data-table">

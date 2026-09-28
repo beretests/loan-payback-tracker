@@ -18,6 +18,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 | 12 | `feat/realtime-dashboard` | User-filtered Supabase subscriptions, connection state, query invalidation, reconnect refetch | Subscription lifecycle tests |
 | 13 | `chore/release-polish` | Accessibility, responsive polish, end-to-end smoke coverage, deployment/runbook docs | Full CI and E2E smoke test |
 | 14 | `feat/financial-accounts` | Named cards and accounts, optional debt linkage, recurring attribution, account spending totals | Account UI tests, RLS/ownership pgTAP tests |
+| 15 | `feat/page-task-bars` | Above-the-fold contextual task menus on every feature tab while preserving the desktop navigation | Task-link coverage, responsive build, browser smoke tests |
 
 ## Data rules
 

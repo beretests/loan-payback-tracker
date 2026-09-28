@@ -4,6 +4,7 @@ import { useExpenses } from "../features/expenses/useExpenses";
 import { money, todayUtcDateString } from "../utils/format";
 import RecurringExpensesPanel from "../components/RecurringExpensesPanel";
 import FinancialAccountsPanel from "../components/FinancialAccountsPanel";
+import PageTaskBar from "../components/PageTaskBar";
 import { useFinancialAccounts } from "../features/accounts/useFinancialAccounts";
 import {
   PAYMENT_METHODS,
@@ -95,7 +96,17 @@ export default function ExpensesPage({ user }) {
 
   return (
     <div className="page-stack">
-      <section className="panel">
+      <PageTaskBar
+        title="Expenses"
+        tasks={[
+          { target: "expense-overview", label: "Overview", action: "View totals" },
+          { target: "expense-form", label: "Expense", action: "Add · edit" },
+          { target: "payment-accounts", label: "Payment accounts", action: "Add · edit · archive" },
+          { target: "recurring-expenses", label: "Recurring", action: "Add · pause · remove" },
+          { target: "expense-activity", label: "Activity", action: "View · edit · delete" },
+        ]}
+      />
+      <section className="panel" id="expense-overview">
         <div className="section-heading">
           <div>
             <h2>Expenses</h2>
@@ -157,7 +168,7 @@ export default function ExpensesPage({ user }) {
         onExpensesChanged={expenseData.refresh}
       />
 
-      <section className="panel">
+      <section className="panel" id="expense-form">
         <h3>{editingId ? "Edit expense" : "Add expense"}</h3>
         <form className="expense-form" onSubmit={submitExpense}>
           <label>
@@ -258,7 +269,7 @@ export default function ExpensesPage({ user }) {
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel" id="expense-activity">
         <h3>Monthly activity</h3>
         <div className="table-wrap">
           <table className="data-table">

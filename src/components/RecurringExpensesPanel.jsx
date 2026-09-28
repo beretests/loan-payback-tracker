@@ -51,7 +51,7 @@ export default function RecurringExpensesPanel({
   }
 
   return (
-    <section className="panel">
+    <section className="panel" id="recurring-expenses">
       <h3>Recurring monthly expenses</h3>
       <p className="form-help">
         Due entries are generated once and remain editable as ordinary expenses.

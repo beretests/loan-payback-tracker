@@ -359,6 +359,73 @@ h4 {
   box-shadow: var(--shadow);
 }
 
+.page-task-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.page-task-bar__label {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.page-task-bar__links {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.page-task-link {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 130px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5px 9px;
+  border: 1px solid #d6deed;
+  border-radius: 9px;
+  background: #f5f7fb;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.page-task-link:hover {
+  border-color: #9badd3;
+  background: #eef3ff;
+  text-decoration: none;
+}
+
+.page-task-link span {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-task-link small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[id] {
+  scroll-margin-top: 16px;
+}
+
 .metric-card {
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -645,6 +712,25 @@ h4 {
 
   .section-heading {
     flex-direction: column;
+  }
+
+  .page-task-bar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .page-task-bar__label {
+    display: none;
+  }
+
+  .page-task-bar__links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-task-link {
+    min-height: 42px;
   }
 
   .expense-form {
