@@ -10,6 +10,7 @@ export function useLoanData(user) {
   const [ratePeriods, setRatePeriods] = useState([]);
   const [scheduled, setScheduled] = useState([]);
   const [events, setEvents] = useState([]);
+  const [charges, setCharges] = useState([]);
   const [loading, setLoading] = useState(false);
   const [appError, setAppError] = useState("");
   const [shareEmail, setShareEmail] = useState("");
@@ -50,7 +51,7 @@ export function useLoanData(user) {
     setLoading(true);
     setAppError("");
     try {
-      const [loanResult, ratesResult, scheduleResult, eventsResult] =
+      const [loanResult, ratesResult, scheduleResult, eventsResult, chargesResult] =
         await Promise.all([
           supabase.from("loans").select("*").eq("id", loanId).single(),
           supabase
@@ -68,17 +69,24 @@ export function useLoanData(user) {
             .select("*")
             .eq("loan_id", loanId)
             .order("paid_date"),
+          supabase
+            .from("debt_charges")
+            .select("*")
+            .eq("loan_id", loanId)
+            .order("charged_on"),
         ]);
 
       if (loanResult.error) throw loanResult.error;
       if (ratesResult.error) throw ratesResult.error;
       if (scheduleResult.error) throw scheduleResult.error;
       if (eventsResult.error) throw eventsResult.error;
+      if (chargesResult.error) throw chargesResult.error;
 
       setLoan(loanResult.data);
       setRatePeriods(ratesResult.data ?? []);
       setScheduled(scheduleResult.data ?? []);
       setEvents(eventsResult.data ?? []);
+      setCharges(chargesResult.data ?? []);
     } catch (error) {
       setAppError(error.message ?? String(error));
     } finally {
@@ -127,6 +135,7 @@ export function useLoanData(user) {
     ratePeriods,
     scheduled,
     events,
+    charges,
     loading,
     setLoading,
     appError,

@@ -2,6 +2,10 @@ import { useMemo, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { calcMonthlyPayment } from "../../loanMath";
 import { buildScheduledPayments } from "../../scheduleGen";
+import {
+  effectiveAnnualRate,
+  percentToDecimal,
+} from "../debts/debtInterest";
 
 export function useCreateLoan({
   user,
@@ -15,7 +19,13 @@ export function useCreateLoan({
   const [newStartDate, setNewStartDate] = useState("");
   const [newAmortMonths, setNewAmortMonths] = useState("");
   const [newDayCount, setNewDayCount] = useState("");
+  const [newRateType, setNewRateType] = useState("fixed");
+  const [newAnnualRatePct, setNewAnnualRatePct] = useState("");
   const [newPrimePct, setNewPrimePct] = useState("");
+  const [newPrimeSpreadPct, setNewPrimeSpreadPct] = useState("");
+  const [newIsPromotional, setNewIsPromotional] = useState(false);
+  const [newPromoEndsOn, setNewPromoEndsOn] = useState("");
+  const [newPostPromoRatePct, setNewPostPromoRatePct] = useState("");
   const [newMonthlyOverride, setNewMonthlyOverride] = useState("");
   const [newDebtType, setNewDebtType] = useState("personal_loan");
   const [newMinimumPayment, setNewMinimumPayment] = useState("");
@@ -23,11 +33,18 @@ export function useCreateLoan({
   const [newDueDay, setNewDueDay] = useState("");
 
   const newLoanRateDecimal = useMemo(() => {
-    const primePercent = Number(newPrimePct);
-    return Number.isFinite(primePercent)
-      ? primePercent / 100 - 0.0025
-      : Number.NaN;
-  }, [newPrimePct]);
+    return effectiveAnnualRate({
+      rateType: newRateType,
+      annualRatePct: newAnnualRatePct,
+      primeRatePct: newPrimePct,
+      spreadPct: newPrimeSpreadPct,
+    });
+  }, [
+    newAnnualRatePct,
+    newPrimePct,
+    newPrimeSpreadPct,
+    newRateType,
+  ]);
 
   const computedNewMonthly = useMemo(() => {
     const principal = Number(newPrincipal);
@@ -69,6 +86,15 @@ export function useCreateLoan({
       const creditLimit =
         newCreditLimit.trim() === "" ? null : Number(newCreditLimit);
       const dueDay = Number(newDueDay);
+      const primeRate =
+        newRateType === "variable" ? percentToDecimal(newPrimePct) : null;
+      const primeSpread =
+        newRateType === "variable"
+          ? percentToDecimal(newPrimeSpreadPct)
+          : null;
+      const postPromoRate = newIsPromotional
+        ? percentToDecimal(newPostPromoRatePct)
+        : null;
 
       if (!name) throw new Error("Loan name is required.");
       if (!newStartDate) throw new Error("Start date is required.");
@@ -82,7 +108,21 @@ export function useCreateLoan({
         throw new Error("Day-count basis must be 360 or 365.");
       }
       if (!Number.isFinite(newLoanRateDecimal)) {
-        throw new Error("Prime rate must be provided.");
+        throw new Error("A valid interest rate must be provided.");
+      }
+      if (newLoanRateDecimal < 0) {
+        throw new Error("The effective APR cannot be negative.");
+      }
+      if (
+        newIsPromotional &&
+        (!newPromoEndsOn ||
+          newPromoEndsOn < newStartDate ||
+          !Number.isFinite(postPromoRate) ||
+          postPromoRate < 0)
+      ) {
+        throw new Error(
+          "Promotional rates need a valid expiry and follow-on APR.",
+        );
       }
       if (!Number.isFinite(monthlyPayment) || monthlyPayment <= 0) {
         throw new Error("Monthly payment must be a positive number.");
@@ -112,19 +152,28 @@ export function useCreateLoan({
             minimum_payment: minimumPayment,
             credit_limit: creditLimit,
             due_day: dueDay,
+            rate_type: newRateType,
+            prime_spread: primeSpread,
+            promo_rate_ends_on: newIsPromotional ? newPromoEndsOn : null,
+            post_promo_annual_rate: postPromoRate,
           },
         ])
         .select()
         .single();
       if (loanError) throw loanError;
 
-      const { error: rateError } = await supabase.from("rate_periods").insert([
-        {
-          loan_id: created.id,
-          effective_date: newStartDate,
-          annual_rate: newLoanRateDecimal,
-        },
-      ]);
+      const { error: rateError } = await supabase.rpc("record_debt_rate", {
+        p_loan_id: created.id,
+        p_effective_date: newStartDate,
+        p_rate_type: newRateType,
+        p_annual_rate: newLoanRateDecimal,
+        p_prime_rate: primeRate,
+        p_spread: primeSpread,
+        p_is_promotional: newIsPromotional,
+        p_promo_ends_on: newIsPromotional ? newPromoEndsOn : null,
+        p_post_promo_annual_rate: postPromoRate,
+        p_note: "Initial rate",
+      });
       if (rateError) throw rateError;
 
       const scheduleRows = buildScheduledPayments(
@@ -152,7 +201,13 @@ export function useCreateLoan({
     newStartDate,
     newAmortMonths,
     newDayCount,
+    newRateType,
+    newAnnualRatePct,
     newPrimePct,
+    newPrimeSpreadPct,
+    newIsPromotional,
+    newPromoEndsOn,
+    newPostPromoRatePct,
     newMonthlyOverride,
     computedNewMonthly,
     newLoanRateDecimal,
@@ -165,7 +220,13 @@ export function useCreateLoan({
     setNewStartDate,
     setNewAmortMonths,
     setNewDayCount,
+    setNewRateType,
+    setNewAnnualRatePct,
     setNewPrimePct,
+    setNewPrimeSpreadPct,
+    setNewIsPromotional,
+    setNewPromoEndsOn,
+    setNewPostPromoRatePct,
     setNewMonthlyOverride,
     setNewDebtType,
     setNewMinimumPayment,

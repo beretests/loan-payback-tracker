@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import {
-  buildActualEventsFromPaymentEvents,
+  buildActualEventsFromDebtLedger,
   buildForecastScheduleFixedPayment,
   buildScheduleFromActualEvents,
   computeScheduledStatuses,
@@ -9,18 +9,30 @@ import {
 import { exportRowsToCSV } from "../../csv";
 import { todayUtcDateString } from "../../utils/format";
 
-export function useLoanCalculations({ loan, ratePeriods, scheduled, events }) {
+export function useLoanCalculations({
+  loan,
+  ratePeriods,
+  scheduled,
+  events,
+  charges,
+}) {
   const normalizedRates = useMemo(
     () => (loan ? normalizeRatePeriods(ratePeriods, loan.start_date) : []),
     [ratePeriods, loan],
   );
   const actualEvents = useMemo(
-    () => buildActualEventsFromPaymentEvents(events),
-    [events],
+    () => buildActualEventsFromDebtLedger(events, charges),
+    [events, charges],
   );
   const actualSchedule = useMemo(() => {
     if (!loan) {
-      return { rows: [], totalPaid: 0, totalInterest: 0, endingBalance: 0 };
+      return {
+        rows: [],
+        totalPaid: 0,
+        totalInterest: 0,
+        totalFees: 0,
+        endingBalance: 0,
+      };
     }
     return buildScheduleFromActualEvents({
       principal: Number(loan.principal),
@@ -78,6 +90,7 @@ export function useLoanCalculations({ loan, ratePeriods, scheduled, events }) {
         "Date",
         "Type",
         "Payment",
+        "PostedCharge",
         "InterestAccrued",
         "ToInterest",
         "ToPrincipal",
@@ -88,6 +101,7 @@ export function useLoanCalculations({ loan, ratePeriods, scheduled, events }) {
         row.date,
         row.type,
         row.payment.toFixed(2),
+        (row.type.endsWith("_charge") ? row.amount : 0).toFixed(2),
         row.interestAccrued.toFixed(2),
         row.toInterest.toFixed(2),
         row.toPrincipal.toFixed(2),

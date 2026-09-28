@@ -3,6 +3,7 @@ import { useDebtDashboard } from "../features/debts/useDebtDashboard";
 import { buildRepaymentPlan } from "../features/debts/repaymentPlan";
 import { money, pct, todayUtcDateString } from "../utils/format";
 import PageTaskBar from "../components/PageTaskBar";
+import DebtInterestPanel from "../components/DebtInterestPanel";
 
 export default function DebtDashboardPage({ user }) {
   const dashboard = useDebtDashboard(user);
@@ -26,6 +27,8 @@ export default function DebtDashboardPage({ user }) {
         tasks={[
           { target: "debt-overview", label: "Overview", action: "View balances · minimums" },
           { target: "repayment-strategy", label: "Repayment plan", action: "Compare strategies" },
+          { target: "rate-history", label: "Interest rates", action: "Add · review APR changes" },
+          { target: "finance-charges", label: "Interest & fees", action: "Post statement charges" },
           { target: "debt-list", label: "Debt details", action: "Review due dates · contributions" },
         ]}
       />
@@ -106,6 +109,12 @@ export default function DebtDashboardPage({ user }) {
           </p>
         )}
       </section>
+
+      <DebtInterestPanel
+        user={user}
+        debts={dashboard.debts}
+        onDebtsChanged={dashboard.refresh}
+      />
 
       <section className="panel" id="debt-list">
         <div className="table-wrap">

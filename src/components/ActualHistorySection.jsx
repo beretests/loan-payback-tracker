@@ -25,6 +25,12 @@ export default function ActualHistorySection({
           </div>
         </div>
         <div className="metric-card">
+          <div className="metric-card__label">Posted fees</div>
+          <div className="metric-card__value">
+            {money(actualSchedule.totalFees ?? 0)}
+          </div>
+        </div>
+        <div className="metric-card">
           <div className="metric-card__label">
             Total interest (accrued between payments)
           </div>
@@ -70,7 +76,7 @@ export default function ActualHistorySection({
               {[
                 "Date",
                 "Type",
-                "Payment",
+                "Payment / charge",
                 "Interest accrued",
                 "To interest",
                 "To principal",
@@ -93,7 +99,7 @@ export default function ActualHistorySection({
                   {r.type}
                 </td>
                 <td>
-                  {money(r.payment)}
+                  {money(r.type.endsWith("_charge") ? r.amount : r.payment)}
                 </td>
                 <td>
                   {money(r.interestAccrued)}

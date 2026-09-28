@@ -6,7 +6,13 @@ export default function CreateLoanForm({
   newStartDate,
   newAmortMonths,
   newDayCount,
+  newRateType,
+  newAnnualRatePct,
   newPrimePct,
+  newPrimeSpreadPct,
+  newIsPromotional,
+  newPromoEndsOn,
+  newPostPromoRatePct,
   newMonthlyOverride,
   computedNewMonthly,
   newLoanRateDecimal,
@@ -19,7 +25,13 @@ export default function CreateLoanForm({
   onStartDateChange,
   onAmortMonthsChange,
   onDayCountChange,
+  onRateTypeChange,
+  onAnnualRatePctChange,
   onPrimePctChange,
+  onPrimeSpreadPctChange,
+  onIsPromotionalChange,
+  onPromoEndsOnChange,
+  onPostPromoRatePctChange,
   onMonthlyOverrideChange,
   onDebtTypeChange,
   onMinimumPaymentChange,
@@ -140,20 +152,95 @@ export default function CreateLoanForm({
         </label>
 
         <label>
-          Prime (%) (for initial rate)
-          <input
-            type="number"
-            step="0.01"
-            value={newPrimePct}
-            onChange={(e) => onPrimePctChange(e.target.value)}
-            placeholder="Prime (%) (for initial rate)"
-            aria-label="Prime (%) (for initial rate)"
-            style={{ width: "100%" }}
-          />
-          <div style={{ fontSize: 12, color: "#555" }}>
-            Loan rate = prime - 0.25% = {pct(newLoanRateDecimal)}
-          </div>
+          Rate type
+          <select
+            value={newRateType}
+            onChange={(e) => onRateTypeChange(e.target.value)}
+          >
+            <option value="fixed">Fixed APR</option>
+            <option value="variable">Variable — prime + spread</option>
+            <option value="interest_free">Interest-free</option>
+          </select>
         </label>
+
+        {newRateType === "fixed" && (
+          <label>
+            APR (%)
+            <input
+              type="number"
+              min="0"
+              step="0.001"
+              value={newAnnualRatePct}
+              onChange={(e) => onAnnualRatePctChange(e.target.value)}
+              required
+            />
+          </label>
+        )}
+
+        {newRateType === "variable" && (
+          <>
+            <label>
+              Prime rate (%)
+              <input
+                type="number"
+                min="0"
+                step="0.001"
+                value={newPrimePct}
+                onChange={(e) => onPrimePctChange(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Spread (%)
+              <input
+                type="number"
+                step="0.001"
+                value={newPrimeSpreadPct}
+                onChange={(e) => onPrimeSpreadPctChange(e.target.value)}
+                placeholder="For example, 2 or -0.25"
+                required
+              />
+            </label>
+          </>
+        )}
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={newIsPromotional}
+            onChange={(e) => onIsPromotionalChange(e.target.checked)}
+          />
+          Promotional rate
+        </label>
+
+        {newIsPromotional && (
+          <>
+            <label>
+              Promotion ends
+              <input
+                type="date"
+                value={newPromoEndsOn}
+                onChange={(e) => onPromoEndsOnChange(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              APR after promotion (%)
+              <input
+                type="number"
+                min="0"
+                step="0.001"
+                value={newPostPromoRatePct}
+                onChange={(e) => onPostPromoRatePctChange(e.target.value)}
+                required
+              />
+            </label>
+          </>
+        )}
+
+        <div className="form-help">
+          Initial effective APR: {pct(newLoanRateDecimal)}
+        </div>
 
         <label>
           Fixed monthly payment override (optional)

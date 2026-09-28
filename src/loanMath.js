@@ -115,6 +115,30 @@ export function buildActualEventsFromPaymentEvents(paymentEvents) {
     });
 }
 
+export function buildActualEventsFromDebtLedger(paymentEvents, debtCharges) {
+  const payments = buildActualEventsFromPaymentEvents(paymentEvents);
+  const charges = (debtCharges || [])
+    .filter((charge) => charge?.charged_on && Number(charge?.amount) > 0)
+    .map((charge) => ({
+      type: charge.charge_type === "fee" ? "fee_charge" : "interest_charge",
+      date: toDateOnly(charge.charged_on),
+      amount: Number(charge.amount),
+      note: charge.note ?? null,
+    }));
+
+  const priority = {
+    interest_charge: 0,
+    fee_charge: 0,
+    monthly: 1,
+    extra: 2,
+  };
+  return [...payments, ...charges].sort((left, right) => {
+    const dateOrder = left.date.getTime() - right.date.getTime();
+    if (dateOrder !== 0) return dateOrder;
+    return priority[left.type] - priority[right.type];
+  });
+}
+
 // Build amortization schedule using ACTUAL events only (no auto monthly events).
 // This is useful for “what actually happened” accounting.
 export function buildScheduleFromActualEvents({
@@ -132,19 +156,60 @@ export function buildScheduleFromActualEvents({
 
   let totalPaid = 0;
   let totalInterest = 0;
+  let totalFees = 0;
+  let pendingInterest = 0;
 
   const rows = [];
 
   for (const ev of events) {
-    if (bal <= 0) break;
+    const isCharge = ["interest_charge", "fee_charge"].includes(ev.type);
+    if (isCharge) {
+      if (ev.type === "fee_charge" && bal > 0) {
+        pendingInterest += accrueInterestVariableRate(
+          bal,
+          lastDate,
+          ev.date,
+          ratePeriods,
+          dayCountBasis,
+        );
+      }
+      bal += ev.amount;
+      if (ev.type === "interest_charge") {
+        totalInterest += ev.amount;
+        pendingInterest = 0;
+      } else {
+        totalFees += ev.amount;
+      }
+      rows.push({
+        date: fmtDate(ev.date),
+        type: ev.type,
+        amount: ev.amount,
+        payment: 0,
+        interestAccrued: ev.type === "interest_charge" ? ev.amount : 0,
+        toInterest: 0,
+        toPrincipal: 0,
+        balance: bal,
+        note: ev.note,
+      });
+      // Posted interest replaces the estimate for the preceding statement
+      // interval. A fee preserves that estimate, but both events start a new
+      // interval so the charge affects interest only from its posting date.
+      lastDate = ev.date;
+      continue;
+    }
 
-    const interestAccrued = accrueInterestVariableRate(
-      bal,
-      lastDate,
-      ev.date,
-      ratePeriods,
-      dayCountBasis
-    );
+    if (bal <= 0) continue;
+
+    const interestAccrued =
+      pendingInterest +
+      accrueInterestVariableRate(
+        bal,
+        lastDate,
+        ev.date,
+        ratePeriods,
+        dayCountBasis,
+      );
+    pendingInterest = 0;
     totalInterest += interestAccrued;
 
     let payment = ev.amount;
@@ -170,6 +235,7 @@ export function buildScheduleFromActualEvents({
     rows.push({
       date: fmtDate(ev.date),
       type: ev.type,
+      amount: payment,
       payment,
       interestAccrued,
       toInterest,
@@ -181,7 +247,7 @@ export function buildScheduleFromActualEvents({
     lastDate = ev.date;
   }
 
-  return { rows, endingBalance: bal, totalPaid, totalInterest };
+  return { rows, endingBalance: bal, totalPaid, totalInterest, totalFees };
 }
 
 /**

@@ -57,26 +57,35 @@ Deno.serve(async (req) => {
       return new Response("Could not parse prime from BoC response", { status: 502 });
     }
 
-    // 2) Load all loans
-    // If you added loans.prime_spread, select it. Otherwise remove it and hardcode spread = -0.0025.
+    // 2) Load variable-rate loans that are not in an active promotion.
     const { data: loans, error: loansErr } = await admin
       .from("loans")
-      .select("id, prime_spread");
+      .select("id, prime_spread")
+      .eq("rate_type", "variable")
+      .not("prime_spread", "is", null)
+      .or(
+        `promo_rate_ends_on.is.null,promo_rate_ends_on.lt.${latest.effective_date}`,
+      );
 
     if (loansErr) throw loansErr;
     if (!loans?.length) {
-      return Response.json({ ok: true, message: "No loans found", effective_date: latest.effective_date });
+      return Response.json({ ok: true, message: "No eligible variable-rate debts found", effective_date: latest.effective_date });
     }
 
     // 3) Build upsert rows for rate_periods
     const rows = loans.map((l: any) => {
-      const spread = Number.isFinite(Number(l.prime_spread)) ? Number(l.prime_spread) : -0.0025;
+      const spread = Number(l.prime_spread);
       const annual_rate = primePctToLoanRateDecimal(latest.primePct, spread);
 
       return {
         loan_id: l.id,
         effective_date: latest.effective_date,
         annual_rate,
+        rate_kind: "standard",
+        source: "prime_sync",
+        prime_rate: latest.primePct / 100,
+        spread,
+        note: "Bank of Canada prime-rate update",
       };
     });
 

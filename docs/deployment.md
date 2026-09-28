@@ -33,6 +33,10 @@ for accessible debt IDs.
   and verify an attributed expense appears under that account's monthly total.
 - Verify paying the linked debt changes payment history without increasing
   ordinary expense totals.
+- Record a fixed or prime-plus-spread APR change and verify the debt forecast
+  uses it from the effective date.
+- Post a statement interest charge and verify the debt balance and actual
+  interest total increase while ordinary expense totals do not.
 - Open a second signed-in device and verify expense, income, debt, and payment
   changes refresh the mounted dashboard.
 - Disable the network briefly; verify Offline then Live appears and current

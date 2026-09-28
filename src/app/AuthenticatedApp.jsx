@@ -46,6 +46,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
     ratePeriods: loans.ratePeriods,
     scheduled: loans.scheduled,
     events: loans.events,
+    charges: loans.charges,
   });
 
   const loanContextProps = {
@@ -55,6 +56,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
     ratePeriods: loans.ratePeriods,
     scheduled: loans.scheduled,
     events: loans.events,
+    charges: loans.charges,
     onSelectLoan: loans.setSelectedLoanId,
     currentUserId: user.id,
     shareEmail: loans.shareEmail,
@@ -114,7 +116,13 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               newStartDate={createLoan.newStartDate}
               newAmortMonths={createLoan.newAmortMonths}
               newDayCount={createLoan.newDayCount}
+              newRateType={createLoan.newRateType}
+              newAnnualRatePct={createLoan.newAnnualRatePct}
               newPrimePct={createLoan.newPrimePct}
+              newPrimeSpreadPct={createLoan.newPrimeSpreadPct}
+              newIsPromotional={createLoan.newIsPromotional}
+              newPromoEndsOn={createLoan.newPromoEndsOn}
+              newPostPromoRatePct={createLoan.newPostPromoRatePct}
               newMonthlyOverride={createLoan.newMonthlyOverride}
               computedNewMonthly={createLoan.computedNewMonthly}
               newLoanRateDecimal={createLoan.newLoanRateDecimal}
@@ -127,7 +135,13 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               onStartDateChange={createLoan.setNewStartDate}
               onAmortMonthsChange={createLoan.setNewAmortMonths}
               onDayCountChange={createLoan.setNewDayCount}
+              onRateTypeChange={createLoan.setNewRateType}
+              onAnnualRatePctChange={createLoan.setNewAnnualRatePct}
               onPrimePctChange={createLoan.setNewPrimePct}
+              onPrimeSpreadPctChange={createLoan.setNewPrimeSpreadPct}
+              onIsPromotionalChange={createLoan.setNewIsPromotional}
+              onPromoEndsOnChange={createLoan.setNewPromoEndsOn}
+              onPostPromoRatePctChange={createLoan.setNewPostPromoRatePct}
               onMonthlyOverrideChange={createLoan.setNewMonthlyOverride}
               onDebtTypeChange={createLoan.setNewDebtType}
               onMinimumPaymentChange={createLoan.setNewMinimumPayment}

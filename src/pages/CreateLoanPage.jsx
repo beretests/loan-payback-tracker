@@ -7,7 +7,13 @@ export default function CreateLoanPage({
   newStartDate,
   newAmortMonths,
   newDayCount,
+  newRateType,
+  newAnnualRatePct,
   newPrimePct,
+  newPrimeSpreadPct,
+  newIsPromotional,
+  newPromoEndsOn,
+  newPostPromoRatePct,
   newMonthlyOverride,
   computedNewMonthly,
   newLoanRateDecimal,
@@ -20,7 +26,13 @@ export default function CreateLoanPage({
   onStartDateChange,
   onAmortMonthsChange,
   onDayCountChange,
+  onRateTypeChange,
+  onAnnualRatePctChange,
   onPrimePctChange,
+  onPrimeSpreadPctChange,
+  onIsPromotionalChange,
+  onPromoEndsOnChange,
+  onPostPromoRatePctChange,
   onMonthlyOverrideChange,
   onDebtTypeChange,
   onMinimumPaymentChange,
@@ -43,7 +55,13 @@ export default function CreateLoanPage({
           newStartDate={newStartDate}
           newAmortMonths={newAmortMonths}
           newDayCount={newDayCount}
+          newRateType={newRateType}
+          newAnnualRatePct={newAnnualRatePct}
           newPrimePct={newPrimePct}
+          newPrimeSpreadPct={newPrimeSpreadPct}
+          newIsPromotional={newIsPromotional}
+          newPromoEndsOn={newPromoEndsOn}
+          newPostPromoRatePct={newPostPromoRatePct}
           newMonthlyOverride={newMonthlyOverride}
           computedNewMonthly={computedNewMonthly}
           newLoanRateDecimal={newLoanRateDecimal}
@@ -56,7 +74,13 @@ export default function CreateLoanPage({
           onStartDateChange={onStartDateChange}
           onAmortMonthsChange={onAmortMonthsChange}
           onDayCountChange={onDayCountChange}
+          onRateTypeChange={onRateTypeChange}
+          onAnnualRatePctChange={onAnnualRatePctChange}
           onPrimePctChange={onPrimePctChange}
+          onPrimeSpreadPctChange={onPrimeSpreadPctChange}
+          onIsPromotionalChange={onIsPromotionalChange}
+          onPromoEndsOnChange={onPromoEndsOnChange}
+          onPostPromoRatePctChange={onPostPromoRatePctChange}
           onMonthlyOverrideChange={onMonthlyOverrideChange}
           onDebtTypeChange={onDebtTypeChange}
           onMinimumPaymentChange={onMinimumPaymentChange}

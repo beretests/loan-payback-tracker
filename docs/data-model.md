@@ -12,6 +12,20 @@ expense attributed to that payment account. A later payment toward the card or
 line of credit is recorded only as a payment_event, so it does not inflate
 monthly expense totals.
 
+## Debt interest
+
+Each debt identifies its rate as fixed, variable (prime plus a lender spread),
+or interest-free. The rate_periods ledger keeps every APR change by effective
+date, including the underlying prime and spread where applicable. Promotional
+rates store an expiry date and a follow-on APR so forecasts can cross the
+promotion boundary without silently assuming the introductory rate continues.
+
+The calculated APR supports planning. Actual statement interest and fees are
+posted to debt_charges and increase the outstanding balance. These charges are
+not ordinary expenses: the purchase was already counted when it occurred, and
+the later debt payment remains a payment_event. This boundary prevents both
+interest and repayments from being counted twice in spending totals.
+
 ## Named payment accounts
 
 The financial_accounts table stores user-defined cash, bank, debit-card,
@@ -26,12 +40,16 @@ historical expense attribution remains intact.
 
 ## Ownership and deletion
 
-Every new row carries user_id, and Row-Level Security compares it with
-auth.uid(). Composite foreign keys ensure an expense cannot reference another
-user's category or named account. The authenticated role receives no DELETE
-privilege on expense or financial account tables. Deletion is an update to
-deleted_at, preserving auditability and producing an RLS-filterable Realtime
-event.
+User-owned expense, income, recurring, and account rows carry user_id, and
+Row-Level Security compares it with auth.uid(). Composite foreign keys ensure
+an expense cannot reference another user's category or named account. The
+authenticated role receives no DELETE privilege on expense or financial
+account tables. Deletion is an update to deleted_at, preserving auditability
+and producing an RLS-filterable Realtime event.
+
+Debt charges use debt ownership rather than a duplicated user_id. Owners may
+write them; shared participants may read them but cannot change rate history or
+statement charges.
 
 ## Recurrence
 

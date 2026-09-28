@@ -503,6 +503,21 @@ h4 {
   margin-top: 12px;
 }
 
+.interest-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.interest-form__note {
+  grid-column: span 2;
+}
+
+.interest-history-table {
+  margin-top: 16px;
+}
+
 .financial-account-form {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -737,11 +752,16 @@ h4 {
     grid-template-columns: 1fr;
   }
 
+  .interest-form {
+    grid-template-columns: 1fr;
+  }
+
   .financial-account-form {
     grid-template-columns: 1fr;
   }
 
   .expense-form__notes,
+  .interest-form__note,
   .form-actions {
     grid-column: auto;
   }

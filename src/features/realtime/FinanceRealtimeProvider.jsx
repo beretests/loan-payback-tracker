@@ -9,7 +9,13 @@ const USER_TABLES = [
   "income_entries",
   "recurring_transactions",
 ];
-const LOAN_TABLES = ["loans", "rate_periods", "scheduled_payments", "payment_events"];
+const LOAN_TABLES = [
+  "loans",
+  "rate_periods",
+  "scheduled_payments",
+  "payment_events",
+  "debt_charges",
+];
 
 export function FinanceRealtimeProvider({ user, children }) {
   const [revision, setRevision] = useState(0);

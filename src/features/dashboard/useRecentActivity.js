@@ -11,7 +11,8 @@ export function useRecentActivity(user) {
     let active = true;
 
     async function load() {
-      const [expenseResult, incomeResult, paymentResult] = await Promise.all([
+      const [expenseResult, incomeResult, paymentResult, chargeResult] =
+        await Promise.all([
         supabase
           .from("expenses")
           .select("id,description,amount,spent_on")
@@ -30,6 +31,11 @@ export function useRecentActivity(user) {
           .from("payment_events")
           .select("id,amount,paid_date,loans(name)")
           .order("paid_date", { ascending: false })
+          .limit(5),
+        supabase
+          .from("debt_charges")
+          .select("id,amount,charged_on,charge_type,loans(name)")
+          .order("charged_on", { ascending: false })
           .limit(5),
       ]);
       if (!active) return;
@@ -53,6 +59,13 @@ export function useRecentActivity(user) {
           date: row.paid_date,
           label: row.loans?.name ?? "Debt payment",
           type: "Debt payment",
+          amount: -Number(row.amount),
+        })),
+        ...(chargeResult.data ?? []).map((row) => ({
+          id: `charge-${row.id}`,
+          date: row.charged_on,
+          label: row.loans?.name ?? "Debt finance charge",
+          type: row.charge_type === "fee" ? "Debt fee" : "Interest charged",
           amount: -Number(row.amount),
         })),
       ];

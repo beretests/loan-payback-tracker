@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  buildActualEventsFromPaymentEvents,
+  buildActualEventsFromDebtLedger,
   buildScheduleFromActualEvents,
   normalizeRatePeriods,
 } from "../../loanMath";
@@ -18,7 +18,7 @@ export function useDebtDashboard(user) {
     if (!user) return;
     const { data, error: loadError } = await supabase
       .from("loans")
-      .select("*,rate_periods(*),payment_events(*)")
+      .select("*,rate_periods(*),payment_events(*),debt_charges(*)")
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (loadError) {
@@ -38,8 +38,9 @@ export function useDebtDashboard(user) {
           startDate: debt.start_date,
           ratePeriods: rates,
           dayCountBasis: Number(debt.day_count_basis),
-          events: buildActualEventsFromPaymentEvents(
+          events: buildActualEventsFromDebtLedger(
             debt.payment_events ?? [],
+            debt.debt_charges ?? [],
           ),
           extraAppliesToPrincipalOnly: true,
         });
