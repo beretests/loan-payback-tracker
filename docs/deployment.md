@@ -41,6 +41,10 @@ for accessible debt IDs.
   zero only inside the period and the original rate resumes afterward.
 - Add a payment pause and verify its scheduled installments show Not required,
   while monthly cash-flow and minimum-payment totals exclude them.
+- Create an eight-payment monthly installment plan for $2,097.37 and verify the
+  first seven installments are $262.17 and the final installment is $262.18.
+  Mark the first paid and verify only $262.17 enters expense totals; then undo
+  it and cancel the remaining schedule.
 - Create, edit, and remove one financial record; verify each successful action
   produces a dismissible notification and a rejected action announces the
   detailed failure without losing the entered form values.

@@ -598,6 +598,33 @@ h4 {
   margin-top: 16px;
 }
 
+.installment-plan-list,
+.installment-rows {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.installment-plan {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.installment-plan__heading,
+.installment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.installment-row {
+  padding: 9px 0;
+  border-top: 1px solid #eef1f6;
+}
+
 .account-list {
   display: grid;
   gap: 8px;

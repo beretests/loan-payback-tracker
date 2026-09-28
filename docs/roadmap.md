@@ -22,6 +22,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 | 16 | `feat/debt-interest-tracking` | Fixed, variable, promotional, and interest-free rate history plus posted statement interest and fees | APR calculation tests, balance-ledger tests, RLS pgTAP tests |
 | 17 | `feat/student-loan-assistance` | Explicit student-loan reporting with dated interest-free, reduced-payment, and payment-pause rules | Assistance projection tests, schedule-status tests, RLS pgTAP tests |
 | 18 | `feat/crud-notifications` | Accessible global success/failure notifications for every user-triggered financial mutation | Notification component tests, mutation coverage audit, browser smoke tests |
+| 19 | `feat/finite-installment-plans` | Fixed-count service and purchase schedules with paid, undo, and cancel lifecycle | Cent-accurate schedule tests, RLS/RPC pgTAP tests, browser smoke tests |
 
 ## Data rules
 
@@ -31,6 +32,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 - Purchases may reference a named payment account; paying a linked credit card or line of credit remains a debt payment, not another expense.
 - Forecast APR changes and posted statement interest are separate: rate history drives projections, while posted debt charges drive the authoritative balance.
 - Student-loan assistance changes required-payment and interest rules only within its approved dates; it never creates a payment or ordinary expense.
+- Finite installment schedules are planning records; an ordinary expense is created only when an installment is marked paid.
 - Summary and payoff calculations stay client-side for the MVP. Server-maintained aggregates can be introduced only when data volume justifies them.
 - Realtime is enabled only for the required transactional tables. Reconnection triggers an authoritative refetch to recover missed events.
 

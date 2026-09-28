@@ -8,6 +8,8 @@ const USER_TABLES = [
   "financial_accounts",
   "income_entries",
   "recurring_transactions",
+  "expense_installment_plans",
+  "expense_installments",
 ];
 const LOAN_TABLES = [
   "loans",

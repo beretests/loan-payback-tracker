@@ -4,6 +4,7 @@ import { useExpenses } from "../features/expenses/useExpenses";
 import { money, todayUtcDateString } from "../utils/format";
 import RecurringExpensesPanel from "../components/RecurringExpensesPanel";
 import FinancialAccountsPanel from "../components/FinancialAccountsPanel";
+import InstallmentPlansPanel from "../components/InstallmentPlansPanel";
 import PageTaskBar from "../components/PageTaskBar";
 import { useFinancialAccounts } from "../features/accounts/useFinancialAccounts";
 import {
@@ -103,6 +104,7 @@ export default function ExpensesPage({ user }) {
           { target: "expense-form", label: "Expense", action: "Add · edit" },
           { target: "payment-accounts", label: "Payment accounts", action: "Add · edit · archive" },
           { target: "recurring-expenses", label: "Recurring", action: "Add · pause · remove" },
+          { target: "installment-plans", label: "Installments", action: "Schedule · mark paid" },
           { target: "expense-activity", label: "Activity", action: "View · edit · delete" },
         ]}
       />
@@ -162,6 +164,13 @@ export default function ExpensesPage({ user }) {
       <FinancialAccountsPanel accountData={accountData} />
 
       <RecurringExpensesPanel
+        user={user}
+        categories={expenseData.categories}
+        accounts={accountData.accounts}
+        onExpensesChanged={expenseData.refresh}
+      />
+
+      <InstallmentPlansPanel
         user={user}
         categories={expenseData.categories}
         accounts={accountData.accounts}
@@ -297,18 +306,24 @@ export default function ExpensesPage({ user }) {
                   <td>{paymentSourceLabel(expense)}</td>
                   <td>{money(Number(expense.amount))}</td>
                   <td>
-                    <div className="row-actions">
-                      <button type="button" onClick={() => editExpense(expense)}>
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => expenseData.deleteExpense(expense.id)}
-                        disabled={expenseData.loading}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    {expense.installment_id ? (
+                      <span className="data-table__muted">
+                        Managed in Installments
+                      </span>
+                    ) : (
+                      <div className="row-actions">
+                        <button type="button" onClick={() => editExpense(expense)}>
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => expenseData.deleteExpense(expense.id)}
+                          disabled={expenseData.loading}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

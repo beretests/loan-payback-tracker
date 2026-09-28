@@ -14,6 +14,8 @@ select results_eq(
         'income_entries',
         'debt_charges',
         'debt_assistance_periods',
+        'expense_installment_plans',
+        'expense_installments',
         'loan_shares',
         'loans',
         'payment_events',
@@ -22,7 +24,7 @@ select results_eq(
         'scheduled_payments'
       ])
   $$,
-  array[11],
+  array[13],
   'all required finance tables are realtime sources'
 );
 
@@ -34,6 +36,8 @@ select results_eq(
       'public.expenses'::regclass,
       'public.debt_charges'::regclass,
       'public.debt_assistance_periods'::regclass,
+      'public.expense_installment_plans'::regclass,
+      'public.expense_installments'::regclass,
       'public.financial_accounts'::regclass,
       'public.income_entries'::regclass,
       'public.loans'::regclass,
@@ -41,7 +45,7 @@ select results_eq(
     ])
       and relreplident = 'f'
   $$,
-  array[7],
+  array[9],
   'transactional tables expose full rows for secure update events'
 );
 

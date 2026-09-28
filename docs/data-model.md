@@ -74,3 +74,22 @@ prevents a reduced payment from exceeding the regular minimum.
 The recurring_transactions table stores monthly definitions, not generated
 ledger entries. Materialized expenses and income entries remain independently
 editable and will record their source definition in later migrations.
+
+## Finite installment plans
+
+The expense_installment_plans table describes a purchase or service with a
+fixed total, a fixed number of payments, and a weekly, biweekly, or monthly
+schedule. Its expense_installments rows are planning records, not spending.
+Amounts are calculated in cents; equal payments are rounded down and the final
+payment absorbs the remainder so the schedule always matches the plan total.
+
+Marking an installment paid creates exactly one ordinary expense and links it
+through expenses.installment_id. Until then, the installment does not affect
+monthly expense or cash-flow totals. Generated expenses are managed from the
+Installments task: undoing payment soft-deletes the expense and reopens the
+installment. Cancelling a plan preserves paid history and cancels only its
+remaining scheduled installments.
+
+An installment may use a named credit card, line of credit, bank account, or
+other payment account. As with any other purchase, a later card or line-of-credit
+repayment is a payment_event and is not counted again as an expense.
