@@ -20,6 +20,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 | 14 | `feat/financial-accounts` | Named cards and accounts, optional debt linkage, recurring attribution, account spending totals | Account UI tests, RLS/ownership pgTAP tests |
 | 15 | `feat/page-task-bars` | Above-the-fold contextual task menus on every feature tab while preserving the desktop navigation | Task-link coverage, responsive build, browser smoke tests |
 | 16 | `feat/debt-interest-tracking` | Fixed, variable, promotional, and interest-free rate history plus posted statement interest and fees | APR calculation tests, balance-ledger tests, RLS pgTAP tests |
+| 17 | `feat/student-loan-assistance` | Explicit student-loan reporting with dated interest-free, reduced-payment, and payment-pause rules | Assistance projection tests, schedule-status tests, RLS pgTAP tests |
 
 ## Data rules
 
@@ -28,6 +29,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 - Financial rows use soft deletion where Realtime visibility and auditability matter.
 - Purchases may reference a named payment account; paying a linked credit card or line of credit remains a debt payment, not another expense.
 - Forecast APR changes and posted statement interest are separate: rate history drives projections, while posted debt charges drive the authoritative balance.
+- Student-loan assistance changes required-payment and interest rules only within its approved dates; it never creates a payment or ordinary expense.
 - Summary and payoff calculations stay client-side for the MVP. Server-maintained aggregates can be introduced only when data volume justifies them.
 - Realtime is enabled only for the required transactional tables. Reconnection triggers an authoritative refetch to recover missed events.
 

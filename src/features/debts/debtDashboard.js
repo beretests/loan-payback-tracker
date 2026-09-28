@@ -3,7 +3,8 @@ export function summarizeDebts(debts) {
     (summary, debt) => ({
       totalDebt: summary.totalDebt + Number(debt.currentBalance || 0),
       minimumPayments:
-        summary.minimumPayments + Number(debt.minimum_payment || 0),
+        summary.minimumPayments +
+        Number(debt.effectiveMinimumPayment ?? debt.minimum_payment ?? 0),
       monthlyInterest:
         summary.monthlyInterest +
         (Number(debt.currentBalance || 0) *

@@ -313,7 +313,8 @@ export function computeScheduledStatuses({
     const expected = Number(cur.expected_amount);
 
     let status = "upcoming";
-    if (sum >= expected && expected > 0) status = "paid";
+    if (expected === 0) status = "not_required";
+    else if (sum >= expected) status = "paid";
     else if (sum > 0 && sum < expected) status = "partial";
     else if (sum === 0 && windowEnd.getTime() <= today.getTime())
       status = "missed";
@@ -338,6 +339,7 @@ export function buildForecastScheduleFixedPayment({
   startDate,
   amortMonths,
   monthlyPayment,
+  paymentForDate,
   dayCountBasis,
   ratePeriods, // normalized [{date, annualRate}]
   extraPayments, // [{paid_date, amount}] or [{date, amount}]
@@ -347,10 +349,13 @@ export function buildForecastScheduleFixedPayment({
   // Monthly scheduled events
   const monthlyEvents = [];
   for (let i = 1; i <= amortMonths; i++) {
+    const date = addMonthsUTC(start, i);
     monthlyEvents.push({
       type: "monthly",
-      date: addMonthsUTC(start, i),
-      amount: Number(monthlyPayment),
+      date,
+      amount: Number(
+        paymentForDate?.(fmtDate(date)) ?? monthlyPayment,
+      ),
     });
   }
 

@@ -4,6 +4,8 @@ import { buildRepaymentPlan } from "../features/debts/repaymentPlan";
 import { money, pct, todayUtcDateString } from "../utils/format";
 import PageTaskBar from "../components/PageTaskBar";
 import DebtInterestPanel from "../components/DebtInterestPanel";
+import StudentLoanAssistancePanel from "../components/StudentLoanAssistancePanel";
+import { assistanceIsActive } from "../features/debts/studentLoanAssistance";
 
 export default function DebtDashboardPage({ user }) {
   const dashboard = useDebtDashboard(user);
@@ -29,6 +31,7 @@ export default function DebtDashboardPage({ user }) {
           { target: "repayment-strategy", label: "Repayment plan", action: "Compare strategies" },
           { target: "rate-history", label: "Interest rates", action: "Add · review APR changes" },
           { target: "finance-charges", label: "Interest & fees", action: "Post statement charges" },
+          { target: "student-loan-assistance", label: "Student loans", action: "Add assistance periods" },
           { target: "debt-list", label: "Debt details", action: "Review due dates · contributions" },
         ]}
       />
@@ -116,6 +119,12 @@ export default function DebtDashboardPage({ user }) {
         onDebtsChanged={dashboard.refresh}
       />
 
+      <StudentLoanAssistancePanel
+        user={user}
+        debts={dashboard.debts}
+        onDebtsChanged={dashboard.refresh}
+      />
+
       <section className="panel" id="debt-list">
         <div className="table-wrap">
           <table className="data-table">
@@ -126,6 +135,7 @@ export default function DebtDashboardPage({ user }) {
                 <th className="data-table__head">Balance</th>
                 <th className="data-table__head">Rate</th>
                 <th className="data-table__head">Minimum</th>
+                <th className="data-table__head">Assistance</th>
                 <th className="data-table__head">Next due</th>
                 <th className="data-table__head">Your payments</th>
                 <th className="data-table__head">Shared payments</th>
@@ -138,7 +148,14 @@ export default function DebtDashboardPage({ user }) {
                   <td>{debt.debt_type.replaceAll("_", " ")}</td>
                   <td>{money(debt.currentBalance)}</td>
                   <td>{pct(debt.currentAnnualRate)}</td>
-                  <td>{money(Number(debt.minimum_payment))}</td>
+                  <td>
+                    {money(
+                      Number(
+                        debt.effectiveMinimumPayment ?? debt.minimum_payment,
+                      ),
+                    )}
+                  </td>
+                  <td>{assistanceSummary(debt)}</td>
                   <td>{debt.nextDueDate}</td>
                   <td>{money(debt.yourContributions)}</td>
                   <td>{money(debt.sharedContributions)}</td>
@@ -146,7 +163,7 @@ export default function DebtDashboardPage({ user }) {
               ))}
               {!dashboard.debts.length && (
                 <tr>
-                  <td className="data-table__empty" colSpan="8">
+                  <td className="data-table__empty" colSpan="9">
                     No debts to display.
                   </td>
                 </tr>
@@ -157,6 +174,19 @@ export default function DebtDashboardPage({ user }) {
       </section>
     </div>
   );
+}
+
+function assistanceSummary(debt) {
+  const today = todayUtcDateString();
+  const labels = {
+    interest_free: "Interest-free",
+    reduced_payment: "Reduced payment",
+    payment_pause: "Payment pause",
+  };
+  const active = (debt.debt_assistance_periods ?? [])
+    .filter((period) => assistanceIsActive(period, today))
+    .map((period) => labels[period.assistance_type]);
+  return active.length ? active.join(", ") : "—";
 }
 
 function Metric({ label, value }) {

@@ -47,6 +47,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
     scheduled: loans.scheduled,
     events: loans.events,
     charges: loans.charges,
+    assistancePeriods: loans.assistancePeriods,
   });
 
   const loanContextProps = {
@@ -57,6 +58,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
     scheduled: loans.scheduled,
     events: loans.events,
     charges: loans.charges,
+    assistancePeriods: loans.assistancePeriods,
     onSelectLoan: loans.setSelectedLoanId,
     currentUserId: user.id,
     shareEmail: loans.shareEmail,
@@ -179,6 +181,7 @@ export default function AuthenticatedApp({ user, onSignOut }) {
               paidCount={calculations.paidCount}
               partialCount={calculations.partialCount}
               missedCount={calculations.missedCount}
+              notRequiredCount={calculations.notRequiredCount}
             />
           }
         />

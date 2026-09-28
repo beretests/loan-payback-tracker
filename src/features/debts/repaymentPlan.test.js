@@ -60,4 +60,59 @@ describe("buildRepaymentPlan", () => {
     });
     expect(accelerated.months).toBeLessThan(minimumOnly.months);
   });
+
+  it("does not accrue interest during a student-loan interest-free period", () => {
+    const studentDebt = {
+      id: "student",
+      name: "Student loan",
+      currentBalance: 1200,
+      currentAnnualRate: 0.12,
+      baseCurrentAnnualRate: 0.12,
+      minimum_payment: 100,
+      debt_assistance_periods: [
+        {
+          assistance_type: "interest_free",
+          starts_on: "2026-09-01",
+          ends_on: "2027-08-31",
+        },
+      ],
+    };
+    const assisted = buildRepaymentPlan({
+      debts: [studentDebt],
+      startMonth: "2026-09",
+    });
+    const regular = buildRepaymentPlan({
+      debts: [{ ...studentDebt, debt_assistance_periods: [] }],
+      startMonth: "2026-09",
+    });
+    expect(assisted.totalInterest).toBe(0);
+    expect(assisted.months).toBeLessThan(regular.months);
+  });
+
+  it("uses a reduced required payment during assistance", () => {
+    const debt = {
+      id: "student",
+      name: "Student loan",
+      currentBalance: 600,
+      currentAnnualRate: 0,
+      minimum_payment: 100,
+      debt_assistance_periods: [
+        {
+          assistance_type: "reduced_payment",
+          starts_on: "2026-09-01",
+          ends_on: "2026-11-30",
+          required_payment: 50,
+        },
+      ],
+    };
+    const assisted = buildRepaymentPlan({
+      debts: [debt],
+      startMonth: "2026-09",
+    });
+    const regular = buildRepaymentPlan({
+      debts: [{ ...debt, debt_assistance_periods: [] }],
+      startMonth: "2026-09",
+    });
+    expect(assisted.months).toBeGreaterThan(regular.months);
+  });
 });

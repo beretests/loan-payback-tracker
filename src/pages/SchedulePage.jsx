@@ -20,6 +20,7 @@ export default function SchedulePage({
   paidCount,
   partialCount,
   missedCount,
+  notRequiredCount,
 }) {
   return (
     <div className="page-stack">
@@ -27,7 +28,7 @@ export default function SchedulePage({
         title="Payment schedule"
         tasks={[
           { target: "schedule-debt", label: "Debt & sharing", action: "Select · invite" },
-          { target: "schedule-status", label: "Schedule status", action: "View paid · partial · missed" },
+          { target: "schedule-status", label: "Schedule status", action: "View paid · paused · missed" },
         ]}
       />
       <section className="panel" id="schedule-debt">
@@ -55,6 +56,7 @@ export default function SchedulePage({
             paidCount={paidCount}
             partialCount={partialCount}
             missedCount={missedCount}
+            notRequiredCount={notRequiredCount}
           />
         ) : (
           <div style={{ color: "#555" }}>

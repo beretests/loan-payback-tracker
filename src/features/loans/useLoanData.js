@@ -11,6 +11,7 @@ export function useLoanData(user) {
   const [scheduled, setScheduled] = useState([]);
   const [events, setEvents] = useState([]);
   const [charges, setCharges] = useState([]);
+  const [assistancePeriods, setAssistancePeriods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [appError, setAppError] = useState("");
   const [shareEmail, setShareEmail] = useState("");
@@ -32,7 +33,7 @@ export function useLoanData(user) {
     let query = supabase
       .from("loans")
       .select(
-        "id,name,created_at,user_id,fixed_monthly_payment,principal,start_date,debt_type,minimum_payment,credit_limit,due_day",
+        "id,name,created_at,user_id,fixed_monthly_payment,principal,start_date,debt_type,minimum_payment,credit_limit,due_day,debt_assistance_periods(*)",
       )
       .order("created_at", { ascending: false });
     query = sharedIds.length
@@ -51,8 +52,14 @@ export function useLoanData(user) {
     setLoading(true);
     setAppError("");
     try {
-      const [loanResult, ratesResult, scheduleResult, eventsResult, chargesResult] =
-        await Promise.all([
+      const [
+        loanResult,
+        ratesResult,
+        scheduleResult,
+        eventsResult,
+        chargesResult,
+        assistanceResult,
+      ] = await Promise.all([
           supabase.from("loans").select("*").eq("id", loanId).single(),
           supabase
             .from("rate_periods")
@@ -74,6 +81,11 @@ export function useLoanData(user) {
             .select("*")
             .eq("loan_id", loanId)
             .order("charged_on"),
+          supabase
+            .from("debt_assistance_periods")
+            .select("*")
+            .eq("loan_id", loanId)
+            .order("starts_on"),
         ]);
 
       if (loanResult.error) throw loanResult.error;
@@ -81,12 +93,14 @@ export function useLoanData(user) {
       if (scheduleResult.error) throw scheduleResult.error;
       if (eventsResult.error) throw eventsResult.error;
       if (chargesResult.error) throw chargesResult.error;
+      if (assistanceResult.error) throw assistanceResult.error;
 
       setLoan(loanResult.data);
       setRatePeriods(ratesResult.data ?? []);
       setScheduled(scheduleResult.data ?? []);
       setEvents(eventsResult.data ?? []);
       setCharges(chargesResult.data ?? []);
+      setAssistancePeriods(assistanceResult.data ?? []);
     } catch (error) {
       setAppError(error.message ?? String(error));
     } finally {
@@ -136,6 +150,7 @@ export function useLoanData(user) {
     scheduled,
     events,
     charges,
+    assistancePeriods,
     loading,
     setLoading,
     appError,

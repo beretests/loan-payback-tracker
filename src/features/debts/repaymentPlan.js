@@ -1,3 +1,8 @@
+import {
+  isInterestFreeOnDate,
+  requiredPaymentForDate,
+} from "./studentLoanAssistance";
+
 const MAX_MONTHS = 1200;
 
 export function buildRepaymentPlan({
@@ -7,13 +12,23 @@ export function buildRepaymentPlan({
   startMonth,
 }) {
   const active = debts
-    .map((debt) => ({
-      id: debt.id,
-      name: debt.name,
-      balance: cents(Number(debt.currentBalance || 0)),
-      annualRate: Number(debt.currentAnnualRate || 0),
-      minimum: cents(Number(debt.minimum_payment || 0)),
-    }))
+    .map((debt) => {
+      const minimum = cents(Number(debt.minimum_payment || 0));
+      return {
+        id: debt.id,
+        name: debt.name,
+        balance: cents(Number(debt.currentBalance || 0)),
+        annualRate: Number(
+          debt.baseCurrentAnnualRate ?? debt.currentAnnualRate ?? 0,
+        ),
+        baseAnnualRate: Number(
+          debt.baseCurrentAnnualRate ?? debt.currentAnnualRate ?? 0,
+        ),
+        minimum,
+        minimum_payment: minimum,
+        debt_assistance_periods: debt.debt_assistance_periods ?? [],
+      };
+    })
     .filter((debt) => debt.balance > 0);
   if (!active.length) {
     return { months: 0, payoffDate: null, totalInterest: 0, payoffOrder: [] };
@@ -30,17 +45,30 @@ export function buildRepaymentPlan({
   const payoffOrder = [];
 
   for (let month = 1; month <= MAX_MONTHS; month += 1) {
+    const monthDate = `${addMonths(startMonth, month - 1)}-01`;
     for (const debt of active) {
       if (debt.balance <= 0) continue;
+      debt.annualRate = isInterestFreeOnDate(
+        debt.debt_assistance_periods,
+        monthDate,
+      )
+        ? 0
+        : debt.baseAnnualRate;
       const interest = cents(debt.balance * (debt.annualRate / 12));
       debt.balance = cents(debt.balance + interest);
       totalInterest = cents(totalInterest + interest);
     }
 
-    let remaining = monthlyBudget;
+    const assistanceReduction = active.reduce((sum, debt) => {
+      if (debt.balance <= 0) return sum;
+      const required = requiredPaymentForDate(debt, monthDate);
+      return sum + Math.max(0, debt.minimum - cents(required));
+    }, 0);
+    let remaining = cents(monthlyBudget - assistanceReduction);
     for (const debt of active) {
       if (debt.balance <= 0) continue;
-      const payment = Math.min(debt.minimum, debt.balance, remaining);
+      const required = cents(requiredPaymentForDate(debt, monthDate));
+      const payment = Math.min(required, debt.balance, remaining);
       debt.balance = cents(debt.balance - payment);
       remaining = cents(remaining - payment);
     }

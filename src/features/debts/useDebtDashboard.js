@@ -8,6 +8,11 @@ import { supabase } from "../../supabaseClient";
 import { todayUtcDateString } from "../../utils/format";
 import { nextDueDate, summarizeDebts } from "./debtDashboard";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import {
+  applyInterestFreePeriods,
+  rateForDate,
+  requiredPaymentForDate,
+} from "./studentLoanAssistance";
 
 export function useDebtDashboard(user) {
   const { revision } = useFinanceRealtime();
@@ -18,7 +23,9 @@ export function useDebtDashboard(user) {
     if (!user) return;
     const { data, error: loadError } = await supabase
       .from("loans")
-      .select("*,rate_periods(*),payment_events(*),debt_charges(*)")
+      .select(
+        "*,rate_periods(*),payment_events(*),debt_charges(*),debt_assistance_periods(*)",
+      )
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     if (loadError) {
@@ -29,8 +36,13 @@ export function useDebtDashboard(user) {
     const today = todayUtcDateString();
     setDebts(
       (data ?? []).map((debt) => {
-        const rates = normalizeRatePeriods(
+        const baseRates = normalizeRatePeriods(
           debt.rate_periods ?? [],
+          debt.start_date,
+        );
+        const rates = applyInterestFreePeriods(
+          baseRates,
+          debt.debt_assistance_periods ?? [],
           debt.start_date,
         );
         const actual = buildScheduleFromActualEvents({
@@ -44,13 +56,13 @@ export function useDebtDashboard(user) {
           ),
           extraAppliesToPrincipalOnly: true,
         });
-        const currentRate = [...rates]
-          .reverse()
-          .find((rate) => rate.effective_date <= today);
+        const effectiveMinimumPayment = requiredPaymentForDate(debt, today);
         return {
           ...debt,
           currentBalance: actual.endingBalance,
-          currentAnnualRate: Number(currentRate?.annual_rate ?? 0),
+          currentAnnualRate: rateForDate(rates, today),
+          baseCurrentAnnualRate: rateForDate(baseRates, today),
+          effectiveMinimumPayment,
           nextDueDate: nextDueDate(debt.due_day, today),
           yourContributions: (debt.payment_events ?? [])
             .filter((event) => event.recorded_by === user.id)

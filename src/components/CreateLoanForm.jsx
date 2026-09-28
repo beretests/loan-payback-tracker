@@ -66,6 +66,7 @@ export default function CreateLoanForm({
             onChange={(e) => onDebtTypeChange(e.target.value)}
           >
             <option value="personal_loan">Personal loan</option>
+            <option value="student_loan">Student loan</option>
             <option value="credit_card">Credit card</option>
             <option value="line_of_credit">Line of credit</option>
             <option value="mortgage">Mortgage</option>

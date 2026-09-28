@@ -6,6 +6,7 @@ export default function ScheduledStatusTable({
   paidCount,
   partialCount,
   missedCount,
+  notRequiredCount,
   pageSize = 18,
 }) {
   const [page, setPage] = useState(1);
@@ -36,6 +37,7 @@ export default function ScheduledStatusTable({
         <div>Paid: {paidCount}</div>
         <div>Partial: {partialCount}</div>
         <div>Missed: {missedCount}</div>
+        <div>Not required: {notRequiredCount}</div>
       </div>
 
       <div

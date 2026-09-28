@@ -15,6 +15,7 @@ const LOAN_TABLES = [
   "scheduled_payments",
   "payment_events",
   "debt_charges",
+  "debt_assistance_periods",
 ];
 
 export function FinanceRealtimeProvider({ user, children }) {

@@ -37,6 +37,10 @@ for accessible debt IDs.
   uses it from the effective date.
 - Post a statement interest charge and verify the debt balance and actual
   interest total increase while ordinary expense totals do not.
+- Create a student loan and add a temporary interest-free period; verify APR is
+  zero only inside the period and the original rate resumes afterward.
+- Add a payment pause and verify its scheduled installments show Not required,
+  while monthly cash-flow and minimum-payment totals exclude them.
 - Open a second signed-in device and verify expense, income, debt, and payment
   changes refresh the mounted dashboard.
 - Disable the network briefly; verify Offline then Live appears and current

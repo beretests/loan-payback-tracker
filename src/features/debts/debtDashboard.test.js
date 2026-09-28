@@ -27,6 +27,19 @@ describe("debt dashboard", () => {
     expect(nextDueDate(31, "2026-02-01")).toBe("2026-02-28");
   });
 
+  it("uses an assistance-adjusted minimum when present", () => {
+    expect(
+      summarizeDebts([
+        {
+          currentBalance: 1000,
+          minimum_payment: 100,
+          effectiveMinimumPayment: 25,
+          currentAnnualRate: 0,
+        },
+      ]).minimumPayments,
+    ).toBe(25);
+  });
+
   it("rolls a passed due day into the next month", () => {
     expect(nextDueDate(5, "2026-09-20")).toBe("2026-10-05");
   });

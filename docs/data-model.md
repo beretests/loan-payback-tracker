@@ -51,6 +51,24 @@ Debt charges use debt ownership rather than a duplicated user_id. Owners may
 write them; shared participants may read them but cannot change rate history or
 statement charges.
 
+## Student-loan assistance
+
+Student loans use the explicit student_loan debt type so balances and payments
+remain separately reportable from personal loans. The
+debt_assistance_periods table stores dated interest-free periods, reduced
+required payments, and payment pauses. Open-ended periods have no ends_on date.
+
+Interest-free periods override forecast and actual accrued interest only inside
+their date range; the underlying rate history resumes afterward. Reduced or
+paused payments adjust debt-dashboard minimums, monthly available-cash
+calculations, payoff projections, and scheduled-payment status. A paused
+installment is marked not required rather than missed.
+
+Only the debt owner can create, change, or delete assistance periods. Shared
+participants can read the rules affecting a shared student loan. A database
+trigger prevents assistance from being attached to other debt types and
+prevents a reduced payment from exceeding the regular minimum.
+
 ## Recurrence
 
 The recurring_transactions table stores monthly definitions, not generated

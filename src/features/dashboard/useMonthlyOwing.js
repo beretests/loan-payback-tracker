@@ -3,6 +3,7 @@ import { supabase } from "../../supabaseClient";
 import { todayUtcDateString } from "../../utils/format";
 import { monthBounds } from "./monthRange";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { requiredPaymentForDate } from "../debts/studentLoanAssistance";
 
 export function useMonthlyOwing(user, loans) {
   const { revision } = useFinanceRealtime();
@@ -45,9 +46,9 @@ export function useMonthlyOwing(user, loans) {
         if (paidResult.error) throw paidResult.error;
         if (!active) return;
 
-        const scheduledByLoan = sumByLoan(
+        const scheduledByLoan = sumScheduledByLoan(
           scheduleResult.data,
-          "expected_amount",
+          loans,
         );
         const paidByLoan = sumByLoan(paidResult.data, "amount");
         const nextRows = loans.map((loan) => ({
@@ -92,6 +93,20 @@ function sumByLoan(rows = [], amountField) {
   const totals = new Map();
   for (const row of rows) {
     const amount = Number(row[amountField]);
+    if (!Number.isFinite(amount)) continue;
+    totals.set(row.loan_id, (totals.get(row.loan_id) ?? 0) + amount);
+  }
+  return totals;
+}
+
+function sumScheduledByLoan(rows = [], loans = []) {
+  const debts = new Map(loans.map((loan) => [loan.id, loan]));
+  const totals = new Map();
+  for (const row of rows) {
+    const debt = debts.get(row.loan_id);
+    const amount = debt
+      ? requiredPaymentForDate(debt, row.due_date, Number(row.expected_amount))
+      : Number(row.expected_amount);
     if (!Number.isFinite(amount)) continue;
     totals.set(row.loan_id, (totals.get(row.loan_id) ?? 0) + amount);
   }

@@ -86,4 +86,15 @@ describe("loan math regressions", () => {
       window_to: "2026-01-16",
     });
   });
+
+  it("does not mark a paused zero-dollar payment as missed", () => {
+    const [result] = computeScheduledStatuses({
+      scheduledPayments: [
+        { due_date: "2026-01-01", expected_amount: 0 },
+      ],
+      paymentEvents: [],
+      todayDateUtc: "2026-02-01",
+    });
+    expect(result.status).toBe("not_required");
+  });
 });

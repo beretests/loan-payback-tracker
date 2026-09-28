@@ -8,6 +8,10 @@ import {
 } from "../../loanMath";
 import { exportRowsToCSV } from "../../csv";
 import { todayUtcDateString } from "../../utils/format";
+import {
+  applyInterestFreePeriods,
+  requiredPaymentForDate,
+} from "../debts/studentLoanAssistance";
 
 export function useLoanCalculations({
   loan,
@@ -15,10 +19,22 @@ export function useLoanCalculations({
   scheduled,
   events,
   charges,
+  assistancePeriods,
 }) {
-  const normalizedRates = useMemo(
-    () => (loan ? normalizeRatePeriods(ratePeriods, loan.start_date) : []),
-    [ratePeriods, loan],
+  const normalizedRates = useMemo(() => {
+    if (!loan) return [];
+    return applyInterestFreePeriods(
+      normalizeRatePeriods(ratePeriods, loan.start_date),
+      assistancePeriods,
+      loan.start_date,
+    );
+  }, [ratePeriods, assistancePeriods, loan]);
+  const assistedLoan = useMemo(
+    () =>
+      loan
+        ? { ...loan, debt_assistance_periods: assistancePeriods }
+        : null,
+    [loan, assistancePeriods],
   );
   const actualEvents = useMemo(
     () => buildActualEventsFromDebtLedger(events, charges),
@@ -61,6 +77,12 @@ export function useLoanCalculations({
       monthlyPayment: Number(loan.fixed_monthly_payment),
       dayCountBasis: Number(loan.day_count_basis),
       ratePeriods: normalizedRates,
+      paymentForDate: (date) =>
+        requiredPaymentForDate(
+          assistedLoan,
+          date,
+          Number(loan.fixed_monthly_payment),
+        ),
       extraPayments: events
         .filter((event) => event.kind === "extra")
         .map((event) => ({
@@ -68,19 +90,26 @@ export function useLoanCalculations({
           amount: event.amount,
         })),
     });
-  }, [loan, events, normalizedRates]);
+  }, [loan, events, normalizedRates, assistedLoan]);
 
   const scheduledWithStatus = useMemo(
     () =>
       loan
         ? computeScheduledStatuses({
-            scheduledPayments: scheduled,
+            scheduledPayments: scheduled.map((payment) => ({
+              ...payment,
+              expected_amount: requiredPaymentForDate(
+                assistedLoan,
+                payment.due_date,
+                Number(payment.expected_amount),
+              ),
+            })),
             paymentEvents: events,
             todayDateUtc: todayUtcDateString(),
             graceDays: 15,
           })
         : [],
-    [loan, scheduled, events],
+    [loan, scheduled, events, assistedLoan],
   );
 
   function exportActualScheduleCSV() {
@@ -118,6 +147,7 @@ export function useLoanCalculations({
     paidCount: countStatus(scheduledWithStatus, "paid"),
     partialCount: countStatus(scheduledWithStatus, "partial"),
     missedCount: countStatus(scheduledWithStatus, "missed"),
+    notRequiredCount: countStatus(scheduledWithStatus, "not_required"),
     exportActualScheduleCSV,
   };
 }
