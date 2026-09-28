@@ -15,7 +15,9 @@ export function useRecurringExpenses(user, onExpensesChanged) {
     try {
       const { data, error: loadError } = await supabase
         .from("recurring_transactions")
-        .select("*,expense_categories(name)")
+        .select(
+          "*,expense_categories(name),financial_accounts(name,account_type,last_four)",
+        )
         .eq("user_id", user.id)
         .eq("transaction_type", "expense")
         .is("deleted_at", null)
@@ -60,6 +62,7 @@ export function useRecurringExpenses(user, onExpensesChanged) {
             amount,
             day_of_month: Number(values.startsOn.slice(8, 10)),
             payment_method: values.paymentMethod,
+            payment_account_id: values.paymentAccountId || null,
             starts_on: values.startsOn,
             next_occurrence_on: values.startsOn,
           },

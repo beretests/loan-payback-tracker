@@ -10,6 +10,7 @@ select results_eq(
       and schemaname = 'public'
       and tablename = any(array[
         'expenses',
+        'financial_accounts',
         'income_entries',
         'loan_shares',
         'loans',
@@ -19,7 +20,7 @@ select results_eq(
         'scheduled_payments'
       ])
   $$,
-  array[8],
+  array[9],
   'all required finance tables are realtime sources'
 );
 
@@ -29,13 +30,14 @@ select results_eq(
     from pg_class
     where oid = any(array[
       'public.expenses'::regclass,
+      'public.financial_accounts'::regclass,
       'public.income_entries'::regclass,
       'public.loans'::regclass,
       'public.payment_events'::regclass
     ])
       and relreplident = 'f'
   $$,
-  array[4],
+  array[5],
   'transactional tables expose full rows for secure update events'
 );
 

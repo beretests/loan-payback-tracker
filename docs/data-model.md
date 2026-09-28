@@ -7,13 +7,31 @@ remain in payment_events; dashboard cash-flow selectors combine the two streams
 when needed but never add debt payments to expense category totals. The
 expense_type value is constrained to ordinary for the MVP.
 
+A purchase made with a credit card or line of credit is therefore one ordinary
+expense attributed to that payment account. A later payment toward the card or
+line of credit is recorded only as a payment_event, so it does not inflate
+monthly expense totals.
+
+## Named payment accounts
+
+The financial_accounts table stores user-defined cash, bank, debit-card,
+credit-card, line-of-credit, and other payment sources. Expenses and recurring
+expense definitions may reference one through payment_account_id. The generic
+payment_method remains as a fallback for imported and older transactions.
+
+Credit-card and line-of-credit accounts can optionally link to an owned loan of
+the same debt_type. Composite foreign keys and a validation trigger prevent
+cross-user or mismatched debt links. Archiving an account is a soft deletion;
+historical expense attribution remains intact.
+
 ## Ownership and deletion
 
 Every new row carries user_id, and Row-Level Security compares it with
 auth.uid(). Composite foreign keys ensure an expense cannot reference another
-user's category. The authenticated role receives no DELETE privilege on expense
-tables. Deletion is an update to deleted_at, preserving auditability and
-producing an RLS-filterable Realtime event.
+user's category or named account. The authenticated role receives no DELETE
+privilege on expense or financial account tables. Deletion is an update to
+deleted_at, preserving auditability and producing an RLS-filterable Realtime
+event.
 
 ## Recurrence
 

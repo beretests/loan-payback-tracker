@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { useRecurringExpenses } from "../features/expenses/useRecurringExpenses";
+import {
+  financialAccountLabel,
+  paymentMethodForAccountType,
+} from "../features/accounts/financialAccounts";
 import { money, todayUtcDateString } from "../utils/format";
 
 function initialForm() {
@@ -8,6 +12,7 @@ function initialForm() {
     amount: "",
     categoryId: "",
     paymentMethod: "other",
+    paymentAccountId: "",
     startsOn: todayUtcDateString(),
   };
 }
@@ -15,6 +20,7 @@ function initialForm() {
 export default function RecurringExpensesPanel({
   user,
   categories,
+  accounts,
   onExpensesChanged,
 }) {
   const recurring = useRecurringExpenses(user, onExpensesChanged);
@@ -22,6 +28,17 @@ export default function RecurringExpensesPanel({
 
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function updatePaymentAccount(value) {
+    const account = accounts.find((candidate) => candidate.id === value);
+    setForm((current) => ({
+      ...current,
+      paymentAccountId: value,
+      paymentMethod: account
+        ? paymentMethodForAccountType(account.account_type)
+        : current.paymentMethod,
+    }));
   }
 
   async function submit(event) {
@@ -74,6 +91,20 @@ export default function RecurringExpensesPanel({
           </select>
         </label>
         <label>
+          Payment account
+          <select
+            value={form.paymentAccountId}
+            onChange={(event) => updatePaymentAccount(event.target.value)}
+          >
+            <option value="">Use generic method</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {financialAccountLabel(account)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           Payment method
           <select
             value={form.paymentMethod}
@@ -82,6 +113,7 @@ export default function RecurringExpensesPanel({
             <option value="other">Other</option>
             <option value="bank_transfer">Bank transfer</option>
             <option value="credit_card">Credit card</option>
+            <option value="line_of_credit">Line of credit</option>
             <option value="debit_card">Debit card</option>
             <option value="cash">Cash</option>
           </select>
@@ -117,6 +149,9 @@ export default function RecurringExpensesPanel({
                 {definition.expense_categories?.name} ·{" "}
                 {money(Number(definition.amount))} · next{" "}
                 {definition.next_occurrence_on}
+                {definition.financial_accounts
+                  ? ` · ${financialAccountLabel(definition.financial_accounts)}`
+                  : ""}
               </div>
             </div>
             <span className={definition.is_active ? "status-live" : ""}>

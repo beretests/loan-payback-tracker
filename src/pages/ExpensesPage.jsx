@@ -3,14 +3,15 @@ import { expensesForMonth, summarizeExpenses } from "../features/expenses/expens
 import { useExpenses } from "../features/expenses/useExpenses";
 import { money, todayUtcDateString } from "../utils/format";
 import RecurringExpensesPanel from "../components/RecurringExpensesPanel";
-
-const PAYMENT_METHODS = [
-  ["cash", "Cash"],
-  ["debit_card", "Debit card"],
-  ["credit_card", "Credit card"],
-  ["bank_transfer", "Bank transfer"],
-  ["other", "Other"],
-];
+import FinancialAccountsPanel from "../components/FinancialAccountsPanel";
+import { useFinancialAccounts } from "../features/accounts/useFinancialAccounts";
+import {
+  PAYMENT_METHODS,
+  financialAccountLabel,
+  paymentMethodForAccountType,
+  paymentSourceLabel,
+  summarizeByPaymentSource,
+} from "../features/accounts/financialAccounts";
 
 function emptyForm(categoryId = "") {
   return {
@@ -19,12 +20,14 @@ function emptyForm(categoryId = "") {
     spentOn: todayUtcDateString(),
     categoryId,
     paymentMethod: "other",
+    paymentAccountId: "",
     notes: "",
   };
 }
 
 export default function ExpensesPage({ user }) {
   const expenseData = useExpenses(user);
+  const accountData = useFinancialAccounts(user);
   const [month, setMonth] = useState(todayUtcDateString().slice(0, 7));
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(() => emptyForm());
@@ -37,9 +40,26 @@ export default function ExpensesPage({ user }) {
     () => expensesForMonth(expenseData.expenses, month),
     [expenseData.expenses, month],
   );
+  const paymentSourceSummary = useMemo(
+    () => summarizeByPaymentSource(expenseData.expenses, month),
+    [expenseData.expenses, month],
+  );
 
   function updateForm(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function updatePaymentAccount(value) {
+    const account = accountData.accounts.find(
+      (candidate) => candidate.id === value,
+    );
+    setForm((current) => ({
+      ...current,
+      paymentAccountId: value,
+      paymentMethod: account
+        ? paymentMethodForAccountType(account.account_type)
+        : current.paymentMethod,
+    }));
   }
 
   async function submitExpense(event) {
@@ -62,6 +82,7 @@ export default function ExpensesPage({ user }) {
       spentOn: expense.spent_on,
       categoryId: expense.category_id,
       paymentMethod: expense.payment_method,
+      paymentAccountId: expense.payment_account_id ?? "",
       notes: expense.notes ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -111,11 +132,28 @@ export default function ExpensesPage({ user }) {
             ))}
           </div>
         )}
+
+        {paymentSourceSummary.length > 0 && (
+          <>
+            <h3 className="summary-heading">Spending by payment account</h3>
+            <div className="category-summary" aria-label="Payment account totals">
+              {paymentSourceSummary.map((source) => (
+                <div key={source.name}>
+                  <span>{source.name}</span>
+                  <strong>{money(source.amount)}</strong>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </section>
+
+      <FinancialAccountsPanel accountData={accountData} />
 
       <RecurringExpensesPanel
         user={user}
         categories={expenseData.categories}
+        accounts={accountData.accounts}
         onExpensesChanged={expenseData.refresh}
       />
 
@@ -161,6 +199,20 @@ export default function ExpensesPage({ user }) {
               {expenseData.categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Payment account
+            <select
+              value={form.paymentAccountId}
+              onChange={(event) => updatePaymentAccount(event.target.value)}
+            >
+              <option value="">Use generic method</option>
+              {accountData.accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {financialAccountLabel(account)}
                 </option>
               ))}
             </select>
@@ -215,7 +267,7 @@ export default function ExpensesPage({ user }) {
                 <th className="data-table__head">Date</th>
                 <th className="data-table__head">Description</th>
                 <th className="data-table__head">Category</th>
-                <th className="data-table__head">Method</th>
+                <th className="data-table__head">Payment account</th>
                 <th className="data-table__head">Amount</th>
                 <th className="data-table__head">Actions</th>
               </tr>
@@ -231,7 +283,7 @@ export default function ExpensesPage({ user }) {
                     )}
                   </td>
                   <td>{expense.expense_categories?.name ?? "Uncategorized"}</td>
-                  <td>{expense.payment_method.replaceAll("_", " ")}</td>
+                  <td>{paymentSourceLabel(expense)}</td>
                   <td>{money(Number(expense.amount))}</td>
                   <td>
                     <div className="row-actions">

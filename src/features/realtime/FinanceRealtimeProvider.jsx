@@ -3,7 +3,12 @@ import { supabase } from "../../supabaseClient";
 import { connectionLabel } from "./realtimeStatus";
 import { FinanceRealtimeContext } from "./FinanceRealtimeContext";
 
-const USER_TABLES = ["expenses", "income_entries", "recurring_transactions"];
+const USER_TABLES = [
+  "expenses",
+  "financial_accounts",
+  "income_entries",
+  "recurring_transactions",
+];
 const LOAN_TABLES = ["loans", "rate_periods", "scheduled_payments", "payment_events"];
 
 export function FinanceRealtimeProvider({ user, children }) {

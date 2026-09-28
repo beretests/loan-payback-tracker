@@ -60,7 +60,9 @@ export function useExpenses(user) {
 
       const expenseResult = await supabase
         .from("expenses")
-        .select("*,expense_categories(name,color)")
+        .select(
+          "*,expense_categories(name,color),financial_accounts(name,account_type,last_four)",
+        )
         .eq("user_id", user.id)
         .is("deleted_at", null)
         .order("spent_on", { ascending: false })
@@ -155,6 +157,7 @@ function normalizeExpense(values) {
     amount,
     spent_on: values.spentOn,
     payment_method: values.paymentMethod,
+    payment_account_id: values.paymentAccountId || null,
     notes: values.notes.trim() || null,
   };
 }

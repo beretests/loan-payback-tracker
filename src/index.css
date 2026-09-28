@@ -436,6 +436,17 @@ h4 {
   margin-top: 12px;
 }
 
+.financial-account-form {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.summary-heading {
+  margin: 20px 0 0;
+}
+
 .expense-form__notes {
   grid-column: 1 / -1;
 }
@@ -456,6 +467,22 @@ h4 {
   display: grid;
   gap: 8px;
   margin-top: 16px;
+}
+
+.account-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.account-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
 .recurring-item {
@@ -624,6 +651,10 @@ h4 {
     grid-template-columns: 1fr;
   }
 
+  .financial-account-form {
+    grid-template-columns: 1fr;
+  }
+
   .expense-form__notes,
   .form-actions {
     grid-column: auto;
@@ -631,6 +662,11 @@ h4 {
 
   .recurring-item {
     grid-template-columns: 1fr;
+  }
+
+  .account-item {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

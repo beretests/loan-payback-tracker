@@ -29,6 +29,10 @@ for accessible debt IDs.
 ## Post-deploy
 
 - Sign in, add an expense, and verify the header changes to Live.
+- Add a named credit card or line of credit, link it to the matching owned debt,
+  and verify an attributed expense appears under that account's monthly total.
+- Verify paying the linked debt changes payment history without increasing
+  ordinary expense totals.
 - Open a second signed-in device and verify expense, income, debt, and payment
   changes refresh the mounted dashboard.
 - Disable the network briefly; verify Offline then Live appears and current

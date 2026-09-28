@@ -1,7 +1,8 @@
 # Debt Payback and Expense Tracker
 
-A React and Supabase personal-finance app for expenses, income, shared debts,
-lump-sum payments, snowball or avalanche planning, and secure live dashboards.
+A React and Supabase personal-finance app for account-attributed expenses,
+income, shared debts, lump-sum payments, snowball or avalanche planning, and
+secure live dashboards.
 
 ## Requirements
 

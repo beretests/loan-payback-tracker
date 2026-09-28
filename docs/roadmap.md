@@ -17,12 +17,14 @@ Each branch in this sequence is independently deployable and is stacked on the p
 | 11 | `feat/combined-dashboard` | Available cash, safe extra payment, forecasts, recent activity, over-allocation warning | Cross-feature scenario tests |
 | 12 | `feat/realtime-dashboard` | User-filtered Supabase subscriptions, connection state, query invalidation, reconnect refetch | Subscription lifecycle tests |
 | 13 | `chore/release-polish` | Accessibility, responsive polish, end-to-end smoke coverage, deployment/runbook docs | Full CI and E2E smoke test |
+| 14 | `feat/financial-accounts` | Named cards and accounts, optional debt linkage, recurring attribution, account spending totals | Account UI tests, RLS/ownership pgTAP tests |
 
 ## Data rules
 
 - An ordinary expense and a debt payment are separate transaction types. Debt repayments are excluded from expense totals so cash outflow is never counted twice.
 - Supabase remains the source of truth. Client state is a cache derived from user-scoped queries.
 - Financial rows use soft deletion where Realtime visibility and auditability matter.
+- Purchases may reference a named payment account; paying a linked credit card or line of credit remains a debt payment, not another expense.
 - Summary and payoff calculations stay client-side for the MVP. Server-maintained aggregates can be introduced only when data volume justifies them.
 - Realtime is enabled only for the required transactional tables. Reconnection triggers an authoritative refetch to recover missed events.
 
