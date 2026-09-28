@@ -71,9 +71,11 @@ prevents a reduced payment from exceeding the regular minimum.
 
 ## Recurrence
 
-The recurring_transactions table stores monthly definitions, not generated
-ledger entries. Materialized expenses and income entries remain independently
-editable and will record their source definition in later migrations.
+The recurring_transactions table stores monthly or yearly definitions, not
+generated ledger entries. Materialized expenses and income entries remain
+independently editable. Yearly definitions retain their original month and day;
+February 29 clamps to February 28 in non-leap years and returns to February 29
+in leap years.
 
 ## Finite installment plans
 

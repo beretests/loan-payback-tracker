@@ -45,6 +45,9 @@ for accessible debt IDs.
   first seven installments are $262.17 and the final installment is $262.18.
   Mark the first paid and verify only $262.17 enters expense totals; then undo
   it and cancel the remaining schedule.
+- Create one monthly and one yearly recurring expense. Verify each materializes
+  only on its due date, yearly entries advance by one year, and February 29
+  entries clamp safely in non-leap years.
 - Create, edit, and remove one financial record; verify each successful action
   produces a dismissible notification and a rejected action announces the
   detailed failure without losing the entered form values.

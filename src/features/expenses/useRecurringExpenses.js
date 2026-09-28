@@ -58,6 +58,7 @@ export function useRecurringExpenses(user, onExpensesChanged) {
             transaction_type: "expense",
             description: values.description.trim(),
             amount,
+            cadence: values.cadence,
             day_of_month: Number(values.startsOn.slice(8, 10)),
             payment_method: values.paymentMethod,
             payment_account_id: values.paymentAccountId || null,

@@ -23,6 +23,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 | 17 | `feat/student-loan-assistance` | Explicit student-loan reporting with dated interest-free, reduced-payment, and payment-pause rules | Assistance projection tests, schedule-status tests, RLS pgTAP tests |
 | 18 | `feat/crud-notifications` | Accessible global success/failure notifications for every user-triggered financial mutation | Notification component tests, mutation coverage audit, browser smoke tests |
 | 19 | `feat/finite-installment-plans` | Fixed-count service and purchase schedules with paid, undo, and cancel lifecycle | Cent-accurate schedule tests, RLS/RPC pgTAP tests, browser smoke tests |
+| 20 | `feat/yearly-recurring-expenses` | Monthly or yearly recurring expense definitions with leap-year-safe materialization | Cadence UI test, recurrence pgTAP tests, browser smoke tests |
 
 ## Data rules
 

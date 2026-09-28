@@ -13,6 +13,7 @@ function initialForm() {
     categoryId: "",
     paymentMethod: "other",
     paymentAccountId: "",
+    cadence: "monthly",
     startsOn: todayUtcDateString(),
   };
 }
@@ -52,9 +53,10 @@ export default function RecurringExpensesPanel({
 
   return (
     <section className="panel" id="recurring-expenses">
-      <h3>Recurring monthly expenses</h3>
+      <h3>Recurring expenses</h3>
       <p className="form-help">
-        Due entries are generated once and remain editable as ordinary expenses.
+        Monthly or yearly entries are generated once when due and remain
+        editable as ordinary expenses.
       </p>
       <form className="expense-form" onSubmit={submit}>
         <label>
@@ -119,6 +121,16 @@ export default function RecurringExpensesPanel({
           </select>
         </label>
         <label>
+          Repeats
+          <select
+            value={form.cadence}
+            onChange={(event) => update("cadence", event.target.value)}
+          >
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </label>
+        <label>
           First date
           <input
             type="date"
@@ -147,7 +159,9 @@ export default function RecurringExpensesPanel({
               <strong>{definition.description}</strong>
               <div className="data-table__muted">
                 {definition.expense_categories?.name} ·{" "}
-                {money(Number(definition.amount))} · next{" "}
+                {money(Number(definition.amount))} ·{" "}
+                {definition.cadence === "yearly" ? "Yearly" : "Monthly"} ·
+                next{" "}
                 {definition.next_occurrence_on}
                 {definition.financial_accounts
                   ? ` · ${financialAccountLabel(definition.financial_accounts)}`
