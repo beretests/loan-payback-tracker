@@ -76,7 +76,7 @@ export default function InstallmentPlansPanel({
           </p>
         </div>
         <label>
-          Date when marking paid
+          Actual payment date
           <input
             type="date"
             value={paidOn}
