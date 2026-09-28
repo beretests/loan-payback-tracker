@@ -41,6 +41,9 @@ for accessible debt IDs.
   zero only inside the period and the original rate resumes afterward.
 - Add a payment pause and verify its scheduled installments show Not required,
   while monthly cash-flow and minimum-payment totals exclude them.
+- Create, edit, and remove one financial record; verify each successful action
+  produces a dismissible notification and a rejected action announces the
+  detailed failure without losing the entered form values.
 - Open a second signed-in device and verify expense, income, debt, and payment
   changes refresh the mounted dashboard.
 - Disable the network briefly; verify Offline then Live appears and current

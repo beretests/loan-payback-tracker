@@ -21,6 +21,7 @@ Each branch in this sequence is independently deployable and is stacked on the p
 | 15 | `feat/page-task-bars` | Above-the-fold contextual task menus on every feature tab while preserving the desktop navigation | Task-link coverage, responsive build, browser smoke tests |
 | 16 | `feat/debt-interest-tracking` | Fixed, variable, promotional, and interest-free rate history plus posted statement interest and fees | APR calculation tests, balance-ledger tests, RLS pgTAP tests |
 | 17 | `feat/student-loan-assistance` | Explicit student-loan reporting with dated interest-free, reduced-payment, and payment-pause rules | Assistance projection tests, schedule-status tests, RLS pgTAP tests |
+| 18 | `feat/crud-notifications` | Accessible global success/failure notifications for every user-triggered financial mutation | Notification component tests, mutation coverage audit, browser smoke tests |
 
 ## Data rules
 

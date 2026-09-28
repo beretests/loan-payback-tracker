@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function useRecurringExpenses(user, onExpensesChanged) {
   const { revision } = useFinanceRealtime();
+  const notifications = useNotifications();
   const [definitions, setDefinitions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,21 +38,17 @@ export function useRecurringExpenses(user, onExpensesChanged) {
   }, [refresh, revision]);
 
   async function createDefinition(values) {
-    const amount = Number(values.amount);
-    if (!values.description.trim()) {
-      setError("Description is required.");
-      return false;
-    }
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setError("Amount must be greater than zero.");
-      return false;
-    }
-    if (!values.categoryId || !values.startsOn) {
-      setError("Category and start date are required.");
-      return false;
-    }
-
     return mutate(async () => {
+      const amount = Number(values.amount);
+      if (!values.description.trim()) {
+        throw new Error("Description is required.");
+      }
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error("Amount must be greater than zero.");
+      }
+      if (!values.categoryId || !values.startsOn) {
+        throw new Error("Category and start date are required.");
+      }
       const { error: insertError } = await supabase
         .from("recurring_transactions")
         .insert([
@@ -68,7 +66,7 @@ export function useRecurringExpenses(user, onExpensesChanged) {
           },
         ]);
       if (insertError) throw insertError;
-    });
+    }, "Recurring expense added.");
   }
 
   async function toggleDefinition(definition) {
@@ -79,7 +77,9 @@ export function useRecurringExpenses(user, onExpensesChanged) {
         .eq("id", definition.id)
         .eq("user_id", user.id);
       if (updateError) throw updateError;
-    });
+    }, definition.is_active
+      ? "Recurring expense paused."
+      : "Recurring expense resumed.");
   }
 
   async function deleteDefinition(id) {
@@ -90,19 +90,21 @@ export function useRecurringExpenses(user, onExpensesChanged) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (deleteError) throw deleteError;
-    });
+    }, "Recurring expense deleted.");
   }
 
-  async function mutate(operation) {
+  async function mutate(operation, successMessage) {
     setLoading(true);
     setError("");
     try {
       await operation();
       await refresh();
       await onExpensesChanged();
+      notifications.success(successMessage);
       return true;
     } catch (mutationError) {
       setError(mutationError.message ?? String(mutationError));
+      notifications.error(mutationError, "Recurring expense action failed.");
       return false;
     } finally {
       setLoading(false);

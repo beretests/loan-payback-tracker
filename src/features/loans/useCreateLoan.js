@@ -6,6 +6,7 @@ import {
   effectiveAnnualRate,
   percentToDecimal,
 } from "../debts/debtInterest";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function useCreateLoan({
   user,
@@ -14,6 +15,7 @@ export function useCreateLoan({
   setLoading,
   setAppError,
 }) {
+  const notifications = useNotifications();
   const [newName, setNewName] = useState("");
   const [newPrincipal, setNewPrincipal] = useState("");
   const [newStartDate, setNewStartDate] = useState("");
@@ -70,7 +72,10 @@ export function useCreateLoan({
   );
 
   async function createLoan() {
-    if (!user) return;
+    if (!user) {
+      notifications.error("Sign in before creating a debt.");
+      return;
+    }
     setLoading(true);
     setAppError("");
     try {
@@ -188,8 +193,10 @@ export function useCreateLoan({
 
       await refreshLoans();
       selectLoan(created.id);
+      notifications.success(`${name} was created successfully.`);
     } catch (error) {
       setAppError(error.message ?? String(error));
+      notifications.error(error, "Could not create debt.");
     } finally {
       setLoading(false);
     }

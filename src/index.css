@@ -165,6 +165,53 @@ h4 {
   background: #f0fdf4;
 }
 
+.notification-stack {
+  position: fixed;
+  z-index: 1000;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  width: min(420px, calc(100vw - 36px));
+  gap: 10px;
+  pointer-events: none;
+}
+
+.notification {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border: 1px solid;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 14px 36px rgb(15 23 42 / 18%);
+  font-weight: 650;
+  pointer-events: auto;
+}
+
+.notification--success {
+  color: #166534;
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.notification--error {
+  color: #9f1239;
+  border-color: #fda4af;
+  background: #fff1f2;
+}
+
+.notification__dismiss {
+  min-width: 28px;
+  padding: 0 7px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
 .form-help {
   margin: 0 0 14px;
   color: var(--muted);

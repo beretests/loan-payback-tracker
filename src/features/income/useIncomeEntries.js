@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function useIncomeEntries(user) {
   const { revision } = useFinanceRealtime();
+  const notifications = useNotifications();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +41,7 @@ export function useIncomeEntries(user) {
         { ...normalize(values), user_id: user.id },
       ]);
       if (insertError) throw insertError;
-    });
+    }, "Income entry added.");
   }
 
   async function updateEntry(id, values) {
@@ -50,7 +52,7 @@ export function useIncomeEntries(user) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (updateError) throw updateError;
-    });
+    }, "Income entry updated.");
   }
 
   async function deleteEntry(id) {
@@ -61,18 +63,20 @@ export function useIncomeEntries(user) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (deleteError) throw deleteError;
-    });
+    }, "Income entry deleted.");
   }
 
-  async function save(operation) {
+  async function save(operation, successMessage) {
     setLoading(true);
     setError("");
     try {
       await operation();
       await refresh();
+      notifications.success(successMessage);
       return true;
     } catch (saveError) {
       setError(saveError.message ?? String(saveError));
+      notifications.error(saveError, "Income action failed.");
       return false;
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { useNotifications } from "../notifications/NotificationContext";
 
 const DEFAULT_CATEGORIES = [
   ["Housing", "#2563eb"],
@@ -13,6 +14,7 @@ const DEFAULT_CATEGORIES = [
 
 export function useExpenses(user) {
   const { revision } = useFinanceRealtime();
+  const notifications = useNotifications();
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -89,7 +91,7 @@ export function useExpenses(user) {
         { ...expense, user_id: user.id, expense_type: "ordinary" },
       ]);
       if (insertError) throw insertError;
-    });
+    }, "Expense added.");
   }
 
   async function updateExpense(id, values) {
@@ -100,7 +102,7 @@ export function useExpenses(user) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (updateError) throw updateError;
-    });
+    }, "Expense updated.");
   }
 
   async function deleteExpense(id) {
@@ -111,18 +113,20 @@ export function useExpenses(user) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (deleteError) throw deleteError;
-    });
+    }, "Expense deleted.");
   }
 
-  async function save(operation) {
+  async function save(operation, successMessage) {
     setLoading(true);
     setError("");
     try {
       await operation();
       await refresh();
+      notifications.success(successMessage);
       return true;
     } catch (saveError) {
       setError(saveError.message ?? String(saveError));
+      notifications.error(saveError, "Expense action failed.");
       return false;
     } finally {
       setLoading(false);

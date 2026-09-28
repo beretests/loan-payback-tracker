@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function useLoanData(user) {
   const { revision } = useFinanceRealtime();
+  const notifications = useNotifications();
   const [loans, setLoans] = useState([]);
   const [selectedLoanId, setSelectedLoanId] = useState("");
   const [loan, setLoan] = useState(null);
@@ -119,10 +121,14 @@ export function useLoanData(user) {
   }, [user, selectedLoanId, loadLoanData]);
 
   async function addLoanShare() {
-    if (!selectedLoanId) return;
+    if (!selectedLoanId) {
+      notifications.error("Select a debt before inviting a participant.");
+      return;
+    }
     const email = shareEmail.trim().toLowerCase();
     if (!email) {
       setShareError("Invite email is required.");
+      notifications.error("Invite email is required.");
       return;
     }
 
@@ -134,8 +140,10 @@ export function useLoanData(user) {
       ]);
       if (error) throw error;
       setShareEmail("");
+      notifications.success(`Debt shared with ${email}.`);
     } catch (error) {
       setShareError(error.message ?? String(error));
+      notifications.error(error, "Could not share debt.");
     } finally {
       setShareLoading(false);
     }

@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { percentToDecimal, validateDebtRate } from "./debtInterest";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function useDebtInterest(user, debts, onDebtsChanged) {
   const { revision } = useFinanceRealtime();
+  const notifications = useNotifications();
   const ownedDebts = useMemo(
     () => debts.filter((debt) => debt.user_id === user?.id),
     [debts, user?.id],
@@ -42,15 +44,17 @@ export function useDebtInterest(user, debts, onDebtsChanged) {
     refreshCharges();
   }, [refreshCharges, revision]);
 
-  async function save(operation) {
+  async function save(operation, successMessage) {
     setLoading(true);
     setError("");
     try {
       await operation();
       await Promise.all([refreshCharges(), onDebtsChanged()]);
+      notifications.success(successMessage);
       return true;
     } catch (saveError) {
       setError(saveError.message ?? String(saveError));
+      notifications.error(saveError, "Debt action failed.");
       return false;
     } finally {
       setLoading(false);
@@ -81,7 +85,7 @@ export function useDebtInterest(user, debts, onDebtsChanged) {
         p_note: values.note,
       });
       if (rateError) throw rateError;
-    });
+    }, "Interest rate recorded.");
   }
 
   async function deleteRate(rateId) {
@@ -92,7 +96,7 @@ export function useDebtInterest(user, debts, onDebtsChanged) {
         .eq("id", rateId)
         .eq("loan_id", activeDebtId);
       if (deleteError) throw deleteError;
-    });
+    }, "Interest rate deleted.");
   }
 
   async function recordCharge(values) {
@@ -112,7 +116,9 @@ export function useDebtInterest(user, debts, onDebtsChanged) {
         recorded_by: user.id,
       });
       if (chargeError) throw chargeError;
-    });
+    }, values.chargeType === "fee"
+      ? "Debt fee posted."
+      : "Interest charge posted.");
   }
 
   async function deleteCharge(chargeId) {
@@ -123,7 +129,7 @@ export function useDebtInterest(user, debts, onDebtsChanged) {
         .eq("id", chargeId)
         .eq("loan_id", activeDebtId);
       if (deleteError) throw deleteError;
-    });
+    }, "Debt charge deleted.");
   }
 
   return {

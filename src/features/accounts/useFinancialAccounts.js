@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useFinanceRealtime } from "../realtime/FinanceRealtimeContext";
+import { useNotifications } from "../notifications/NotificationContext";
 
 const LINKABLE_DEBT_TYPES = ["credit_card", "line_of_credit"];
 
 export function useFinancialAccounts(user) {
   const { revision } = useFinanceRealtime();
+  const notifications = useNotifications();
   const [accounts, setAccounts] = useState([]);
   const [debts, setDebts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -58,7 +60,7 @@ export function useFinancialAccounts(user) {
         .from("financial_accounts")
         .insert([{ ...normalizeAccount(values), user_id: user.id }]);
       if (insertError) throw insertError;
-    });
+    }, "Account added.");
   }
 
   function updateAccount(id, values) {
@@ -69,7 +71,7 @@ export function useFinancialAccounts(user) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (updateError) throw updateError;
-    });
+    }, "Account updated.");
   }
 
   function archiveAccount(id) {
@@ -80,18 +82,20 @@ export function useFinancialAccounts(user) {
         .eq("id", id)
         .eq("user_id", user.id);
       if (archiveError) throw archiveError;
-    });
+    }, "Account archived.");
   }
 
-  async function save(operation) {
+  async function save(operation, successMessage) {
     setLoading(true);
     setError("");
     try {
       await operation();
       await refresh();
+      notifications.success(successMessage);
       return true;
     } catch (saveError) {
       setError(saveError.message ?? String(saveError));
+      notifications.error(saveError, "Account action failed.");
       return false;
     } finally {
       setLoading(false);

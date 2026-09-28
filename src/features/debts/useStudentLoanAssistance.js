@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function useStudentLoanAssistance(user, debts, onDebtsChanged) {
+  const notifications = useNotifications();
   const studentLoans = useMemo(
     () =>
       debts.filter(
@@ -22,15 +24,17 @@ export function useStudentLoanAssistance(user, debts, onDebtsChanged) {
     (debt) => debt.id === selectedDebtId,
   );
 
-  async function save(operation) {
+  async function save(operation, successMessage) {
     setLoading(true);
     setError("");
     try {
       await operation();
       await onDebtsChanged();
+      notifications.success(successMessage);
       return true;
     } catch (saveError) {
       setError(saveError.message ?? String(saveError));
+      notifications.error(saveError, "Student-loan assistance action failed.");
       return false;
     } finally {
       setLoading(false);
@@ -72,7 +76,7 @@ export function useStudentLoanAssistance(user, debts, onDebtsChanged) {
           recorded_by: user.id,
         });
       if (insertError) throw insertError;
-    });
+    }, "Assistance period added.");
   }
 
   async function deletePeriod(periodId) {
@@ -83,7 +87,7 @@ export function useStudentLoanAssistance(user, debts, onDebtsChanged) {
         .eq("id", periodId)
         .eq("loan_id", selectedDebtId);
       if (deleteError) throw deleteError;
-    });
+    }, "Assistance period deleted.");
   }
 
   return {

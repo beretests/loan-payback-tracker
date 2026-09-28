@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { allocateLumpSumPayment } from "../../paymentAllocation";
 import { todayUtcDateString } from "../../utils/format";
+import { useNotifications } from "../notifications/NotificationContext";
 
 export function usePayments({
   user,
@@ -12,13 +13,17 @@ export function usePayments({
   setLoading,
   setAppError,
 }) {
+  const notifications = useNotifications();
   const [payDate, setPayDate] = useState(todayUtcDateString());
   const [payAmount, setPayAmount] = useState("");
   const [payKind, setPayKind] = useState("manual");
   const [payNote, setPayNote] = useState("");
 
   async function addPaymentEvent() {
-    if (!selectedLoanId) return;
+    if (!selectedLoanId) {
+      notifications.error("Select a debt before recording a payment.");
+      return;
+    }
     setLoading(true);
     setAppError("");
     try {
@@ -41,8 +46,10 @@ export function usePayments({
       setPayAmount("");
       setPayNote("");
       await loadLoanData(selectedLoanId);
+      notifications.success("Payment recorded.");
     } catch (error) {
       setAppError(error.message ?? String(error));
+      notifications.error(error, "Could not record payment.");
     } finally {
       setLoading(false);
     }
@@ -106,9 +113,11 @@ export function usePayments({
       if (error) throw error;
       await refreshLoans();
       if (selectedLoanId) await loadLoanData(selectedLoanId);
+      notifications.success("Lump-sum payment recorded.");
       return true;
     } catch (error) {
       setAppError(error.message ?? String(error));
+      notifications.error(error, "Could not record lump-sum payment.");
       return false;
     } finally {
       setLoading(false);
@@ -125,8 +134,10 @@ export function usePayments({
         .eq("id", eventId);
       if (error) throw error;
       await loadLoanData(selectedLoanId);
+      notifications.success("Payment deleted.");
     } catch (error) {
       setAppError(error.message ?? String(error));
+      notifications.error(error, "Could not delete payment.");
     } finally {
       setLoading(false);
     }
